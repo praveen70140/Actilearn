@@ -8,3 +8,6 @@ export const users = pgTable('users', {
   name: text('name'),
   email: varchar('email', { length: 256 }),
 });
+
+// Export Better Auth tables
+export * from './schema/auth-schema';
