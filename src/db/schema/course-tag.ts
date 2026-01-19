@@ -1,6 +1,6 @@
 import { pgTable, text } from 'drizzle-orm/pg-core';
 import { course } from './course';
-import { tag } from './tags';
+import { tag } from './tag';
 import { InferSelectModel } from 'drizzle-orm';
 
 export const courseTag = pgTable('course-tag', {
