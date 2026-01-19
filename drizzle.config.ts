@@ -1,6 +1,4 @@
-import type { Config } from 'drizzle-kit';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
+import 'dotenv/config';
 
 export default {
   schema: './src/db/schema.ts',
@@ -9,4 +7,6 @@ export default {
   dbCredentials: {
     connectionString: process.env.DATABASE_URL!,
   },
-} satisfies Config;
+  verbose: true,
+  strict: true,
+};
