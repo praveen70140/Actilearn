@@ -19,7 +19,7 @@ export const user = pgTable('user', {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  role: smallint('role').notNull().default(0),
+  role: smallint('role').notNull().default(-1),
 });
 
 export const session = pgTable(
