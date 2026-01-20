@@ -7,6 +7,7 @@ export const course = pgTable('course', {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: text('name').unique().notNull(),
+  description: text('description').notNull(),
   creator: text('creator').references(() => user.id, { onDelete: 'cascade' }),
   created: timestamp('created').defaultNow(),
 });
