@@ -1,27 +1,44 @@
 @import 'tailwindcss';
 @import '@heroui/styles';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+:root,
+.dark,
+.default,
+[data-theme='dark'] {
+  color-scheme: dark;
+  /* Theme Colors (Dark Mode) */
+  --accent: oklch(66.37% 0.1751 273.14);
+  --accent-foreground: oklch(15% 0.03 273.14);
+  --background: oklch(12% 0.02 273.14);
+  --border: oklch(28% 0.02 273.14);
+  --danger: oklch(59.4% 0.2046 26.95);
+  --danger-foreground: oklch(99.11% 0 0);
+  --default: oklch(27.4% 0.02 273.14);
+  --default-foreground: oklch(99.11% 0 0);
+  --field-background: oklch(21.03% 0.04 273.14);
+  --field-foreground: oklch(99.11% 0 0);
+  --field-placeholder: oklch(70.5% 0.04 273.14);
+  --focus: oklch(66.37% 0.1751 273.14);
+  --foreground: oklch(99.11% 0 0);
+  --muted: oklch(70.5% 0.04 273.14);
+  --overlay: oklch(21.03% 0.04 273.14);
+  --overlay-foreground: oklch(99.11% 0 0);
+  --scrollbar: oklch(70.5% 0.02 273.14);
+  --segment: oklch(39.64% 0.02 273.14);
+  --segment-foreground: oklch(99.11% 0 0);
+  --separator: oklch(25% 0.02 273.14);
+  --success: oklch(73.29% 0.2012 153.13);
+  --success-foreground: oklch(21.03% 0.0059 153.13);
+  --surface: oklch(21.03% 0.04 273.14);
+  --surface-foreground: oklch(99.11% 0 0);
+  --warning: oklch(82.03% 0.1444 78.66);
+  --warning-foreground: oklch(21.03% 0.0059 78.66);
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Border Radius */
+  --radius: 0.25rem;
+  --field-radius: 0.75rem;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Font Family */
+  /* Make sure to load Inter font in your app */
+  --font-sans: var(--font-glacial-regular);
 }
