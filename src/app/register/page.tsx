@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signUp } from '@/lib/auth-client';
 import Link from 'next/link';
+// import { useForm } from 'react-hook-form';
+// import { registerUserSchema } from '@/lib/zod/register-user';
+// import { zodResolver } from '@hookform/resolvers/zod';
+// import z from 'zod';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -13,6 +17,19 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // const {
+  //   register,
+  //   handleSubmit: _,
+  //   control,
+  //   reset,
+  // } = useForm<z.infer<typeof registerUserSchema>>({
+  //   resolver: zodResolver(registerUserSchema),
+  //   defaultValues: {
+  //     username: '',
+  //     password: '',
+  //   },
+  // });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
