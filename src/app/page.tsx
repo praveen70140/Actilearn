@@ -62,7 +62,7 @@ export default function Home() {
           <Alert status="default">
             <Alert.Indicator />
             <Alert.Content>
-              <Alert.Title>Demo Cerdentials</Alert.Title>
+              <Alert.Title>Demo Credentials</Alert.Title>
               <Alert.Description className="">
                 For testing, you can create a new account or use any
                 email/password combination
