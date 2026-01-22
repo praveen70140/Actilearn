@@ -67,17 +67,6 @@ export default function DashboardPage() {
     }
   }, [session, isPending, router]);
 
-  const handleSignOut = async () => {
-    // TODO:Properly handle sign-out server side
-    await signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push('/login');
-        },
-      },
-    });
-  };
-
   // Loading state
   if (isPending || !session) {
     return (
@@ -89,30 +78,6 @@ export default function DashboardPage() {
 
   return (
     <div className="bg-background text-foreground min-h-screen">
-      {/* Navigation Bar */}
-      <nav className="border-border bg-surface border-b shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 justify-between">
-            <div className="flex items-center">
-              <h1 className="text-accent text-xl font-bold">ActiLearn</h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <p>
-                {' '}
-                Welcome back,{' '}
-                <span className="text-accent font-semibold">
-                  {session.user.name}
-                </span>
-                !
-              </p>
-              <Button onPress={handleSignOut} variant="bordered">
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Main Content */}
       <main className="mx-auto max-w-7xl py-12 sm:px-6 lg:px-8">
         {/* Quick Actions */}
