@@ -7,15 +7,7 @@ interface Props {
 
 const FormSuccess = ({ message }: Props) => {
   if (!message) return null;
-
-  return (
-    <Alert status="success" className="border-success border-2">
-      <Alert.Indicator />
-      <Alert.Content>
-        <Alert.Description>{message}</Alert.Description>
-      </Alert.Content>
-    </Alert>
-  );
+  return <Alert color={'success'} description={message} />;
 };
 
 export default FormSuccess;

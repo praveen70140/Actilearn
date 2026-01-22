@@ -7,15 +7,7 @@ interface Props {
 
 const FormError = ({ message }: Props) => {
   if (!message) return null;
-
-  return (
-    <Alert status="danger" className="border-danger border-2">
-      <Alert.Indicator />
-      <Alert.Content>
-        <Alert.Description>{message}</Alert.Description>
-      </Alert.Content>
-    </Alert>
-  );
+  return <Alert color={'danger'} description={message} />;
 };
 
 export default FormError;

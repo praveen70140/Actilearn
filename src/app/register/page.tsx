@@ -8,16 +8,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { registerUserSchema } from '@/lib/zod/register-user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import {
-  Alert,
-  Button,
-  ErrorMessage,
-  FieldError,
-  Form,
-  Input,
-  Label,
-  TextField,
-} from '@heroui/react';
+import { Alert, Button, Form, Input } from '@heroui/react';
 import FormError from '@/components/form/form-error';
 import FormSuccess from '@/components/form/form-success';
 import { registerUser } from '@/actions/auth/register-user';
@@ -140,7 +131,7 @@ export default function RegisterPage() {
             field: { name, value, onChange, onBlur, ref },
             fieldState: { invalid, error },
           }) => (
-            <TextField
+            <Input
               name={name}
               value={value}
               onChange={onChange}
@@ -149,11 +140,10 @@ export default function RegisterPage() {
               isRequired
               validationBehavior="aria"
               isInvalid={invalid}
-            >
-              <Label>Full Name</Label>
-              <Input placeholder="Enter your full name" />
-              <FieldError>{error?.message}</FieldError>
-            </TextField>
+              label={'Full Name'}
+              placeholder="Enter your full name"
+              errorMessage={error?.message}
+            />
           )}
         />
         <Controller
@@ -163,7 +153,7 @@ export default function RegisterPage() {
             field: { name, value, onChange, onBlur, ref },
             fieldState: { invalid, error },
           }) => (
-            <TextField
+            <Input
               name={name}
               value={value}
               onChange={onChange}
@@ -173,11 +163,10 @@ export default function RegisterPage() {
               isRequired
               validationBehavior="aria"
               isInvalid={invalid}
-            >
-              <Label>Email</Label>
-              <Input placeholder="Enter your email" />
-              <FieldError>{error?.message}</FieldError>
-            </TextField>
+              label="Email"
+              placeholder="Enter your email"
+              errorMessage={error?.message}
+            />
           )}
         />
 
@@ -188,7 +177,7 @@ export default function RegisterPage() {
             field: { name, value, onChange, onBlur, ref },
             fieldState: { invalid, error },
           }) => (
-            <TextField
+            <Input
               name={name}
               value={value}
               onChange={onChange}
@@ -198,11 +187,10 @@ export default function RegisterPage() {
               isRequired
               validationBehavior="aria"
               isInvalid={invalid}
-            >
-              <Label>Password</Label>{' '}
-              <Input placeholder="Enter your password" />
-              <FieldError>{error?.message}</FieldError>
-            </TextField>
+              label="Password"
+              placeholder="Enter your password"
+              errorMessage={error?.message}
+            />
           )}
         />
 
@@ -213,7 +201,7 @@ export default function RegisterPage() {
             field: { name, value, onChange, onBlur, ref },
             fieldState: { invalid, error },
           }) => (
-            <TextField
+            <Input
               name={name}
               value={value}
               onChange={onChange}
@@ -223,15 +211,14 @@ export default function RegisterPage() {
               isRequired
               validationBehavior="aria"
               isInvalid={invalid}
-            >
-              <Label>Confirm Password</Label>
-              <Input placeholder="Confirm your password" />
-              <FieldError>{error?.message}</FieldError>
-            </TextField>
+              label={'Confirm Password'}
+              placeholder="Confirm your password"
+              errorMessage={error?.message}
+            />
           )}
         />
 
-        <ErrorMessage>{(errors as any)['']?.message}</ErrorMessage>
+        <p className="text-danger-500">{(errors as any)['']?.message}</p>
 
         <FormError message={error} />
         <FormSuccess message={success} />
