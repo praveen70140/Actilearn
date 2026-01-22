@@ -1,25 +1,19 @@
+
 # syntax=docker.io/docker/dockerfile:1
 
-# Use the official Node.js 20 image as a base
-FROM node:20-alpine AS development
+FROM node:20-alpine
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Install dependencies using the preferred package manager
-# This layer is cached to speed up subsequent builds
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
-RUN \
-  if [ -f yarn.lock ]; then yarn; \
-  elif [ -f package-lock.json ]; then npm install; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+# Copy only dependency files first (for layer caching)
+COPY package.json package-lock.json ./
 
-# The source code will be mounted from the host, so we don't copy it here.
+RUN npm install
 
-# Expose the port Next.js runs on
+# Copy the rest of the source
+COPY . .
+
 EXPOSE 3000
 
-# Set the default command to run the Next.js development server
 CMD ["npm", "run", "dev"]
+
