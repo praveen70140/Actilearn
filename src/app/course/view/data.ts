@@ -1,75 +1,35 @@
-// data.ts
 export const courseData = {
-  id: 'course-1',
-  title: 'Web Development Fundamentals',
-  chapters: [
-    {
-      id: 'chapter-1',
-      title: '1. HTML Foundations',
-      lessons: [
+  id: 'c1',
+  title: 'Fullstack Mastery',
+  chapters: [{
+    id: 'ch1',
+    title: 'Chapter 1',
+    lessons: [{
+      id: 'l1',
+      title: 'React Hooks',
+      questions: [
         {
-          id: 'lesson-1-1',
-          title: 'What is HTML?',
-          theory: `
-**HTML** (HyperText Markup Language) is the skeleton of the web.
-
-It defines structure, not behavior or styling.
-          
-### Core Concepts
-* **Elements**: The building blocks of pages.
-* **Tags**: Used to mark the start and end of elements.
-* **Attributes**: Provide additional information about elements.
-
-\`\`\`html
-<!DOCTYPE html>
-<html>
-  <body>My Page</body>
-</html>
-\`\`\`
-          `,
-          questions: [
-            { id: 'q-1-1-1', text: 'What does HTML stand for?' },
-            { id: 'q-1-1-2', text: 'Is HTML a programming language?' },
-            { id: 'q-1-1-3', text: 'Which tag is used for the largest heading?' },
-          ],
+          id: 'q1',
+          type: 'mcq',
+          text: 'Which hook is used for side effects?',
+          options: ['useState', 'useEffect', 'useMemo', 'useRef'],
+          correctAnswer: 1,
+          solution: "The 'useEffect' hook lets you perform side effects in function components. This includes data fetching, setting up a subscription, and manually changing the DOM in React components."
         },
         {
-          id: 'lesson-1-2',
-          title: 'Basic Tags',
-          theory: `
-HTML provides a set of predefined tags.
-
-Common tags include:
-
-\`\`\`html
-<div> <p> <span>
-\`\`\`
-          `,
-          questions: [
-            { id: 'q-1-2-1', text: 'What tag is used to create a paragraph?' },
-            { id: 'q-1-2-2', text: 'Which tag is non-semantic by default?' },
-          ],
+          id: 'q2',
+          type: 'numerical',
+          text: 'In standard HTTP, which port number is used for HTTPS?',
+          correctAnswer: 443,
+          solution: "Port 443 is the standard port for all secured HTTP traffic. Port 80 is used for unencrypted, standard HTTP."
         },
-      ],
-    },
-    {
-      id: 'chapter-2',
-      title: '2. CSS Basics',
-      lessons: [
         {
-          id: 'lesson-2-1',
-          title: 'What is CSS?',
-          theory: `
-**CSS** controls how HTML looks.
-
-It handles layout, colors, spacing, and animations.
-          `,
-          questions: [
-            { id: 'q-2-1-1', text: 'What does CSS stand for?' },
-            { id: 'q-2-1-3', text: 'Which property controls text color?' },
-          ],
-        },
-      ],
-    },
-  ],
+          id: 'q3',
+          type: 'subjective',
+          text: 'Briefly explain why we use the dependency array in useEffect.',
+          solution: "The dependency array tells React when to re-run the effect. If a value in the array changes between renders, the effect runs again. Leaving it empty [] means the effect runs only once after the initial render."
+        }
+      ]
+    }]
+  }]
 };
