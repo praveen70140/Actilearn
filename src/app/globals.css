@@ -3,3 +3,19 @@
 /* Note: You may need to change the path to fit your project structure */
 @source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
+
+/* globals.css */
+.prose h1,
+.prose h2,
+.prose h3 {
+  color: #fab387 !important; /* Mocha Peach */
+}
+.prose strong {
+  color: #f38ba8 !important; /* Mocha Red */
+}
+.prose code {
+  color: #94e2d5 !important; /* Mocha Teal */
+  background: #313244;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
