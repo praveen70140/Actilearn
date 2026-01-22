@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
+import { Providers } from './providers';
 
 const glacialIndifferenceRegular = localFont({
   src: '../../public/fonts/GlacialIndifference-Regular.otf',
@@ -28,7 +29,7 @@ export default function RootLayout({
       <body
         className={`${glacialIndifferenceRegular.className} ${glacialIndifferenceBold.className} bg-background text-foreground antialiased`}
       >
-        {children}
+        <Providers>{children}</Providers>{' '}
       </body>
     </html>
   );

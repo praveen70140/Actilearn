@@ -4,7 +4,15 @@ import NextLink from 'next/link';
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Alert, Button, Card, Spinner } from '@heroui/react';
+import {
+  Alert,
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Spinner,
+} from '@heroui/react';
 
 export default function Home() {
   const { data: session, isPending } = useSession();
@@ -40,35 +48,25 @@ export default function Home() {
 
         <div className="space-y-4">
           <Card>
-            <Card.Header>
-              <Card.Title className="text-2xl">Get Started</Card.Title>
-            </Card.Header>
-            <Card.Content>
+            <CardHeader>
+              <h2 className="text-2xl">Get Started</h2>
+            </CardHeader>
+            <CardBody>
               Create an account or sign in to access your personalized learning
               dashboard
-            </Card.Content>
-            <Card.Footer className="gap-2 self-center">
+            </CardBody>
+            <CardFooter className="gap-2 self-center">
               <NextLink href="/register">
                 <Button size="lg">Register</Button>
               </NextLink>
               <NextLink href="/login">
-                <Button variant="secondary" size="lg">
+                <Button variant="faded" size="lg">
                   Log In
                 </Button>
               </NextLink>
-            </Card.Footer>
+            </CardFooter>
           </Card>
-
-          <Alert status="default">
-            <Alert.Indicator />
-            <Alert.Content>
-              <Alert.Title>Demo Credentials</Alert.Title>
-              <Alert.Description className="">
-                For testing, you can create a new account or use any
-                email/password combination
-              </Alert.Description>
-            </Alert.Content>
-          </Alert>
+          /
         </div>
       </div>
     </div>
