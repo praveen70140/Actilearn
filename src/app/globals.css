@@ -6,35 +6,32 @@
 .default,
 [data-theme='dark'] {
   color-scheme: dark;
-  /* Theme Colors (Dark Mode) */
-  color-scheme: dark;
-  /* Theme Colors (Dark Mode) */
-  --accent: oklch(81.66% 0.0909 277.31);
-  --accent-foreground: oklch(15% 0.0182 277.31);
-  --background: oklch(12% 0.02 277.31);
-  --border: oklch(28% 0.02 277.31);
-  --danger: oklch(59.4% 0.2046 27.45);
-  --danger-foreground: oklch(99.11% 0 0);
-  --default: oklch(27.4% 0.02 277.31);
-  --default-foreground: oklch(99.11% 0 0);
-  --field-background: oklch(21.03% 0.04 277.31);
-  --field-foreground: oklch(99.11% 0 0);
-  --field-placeholder: oklch(70.5% 0.04 277.31);
-  --focus: oklch(81.66% 0.0909 277.31);
-  --foreground: oklch(87.866% 0.04266 272.281);
-  --muted: oklch(70.5% 0.04 277.31);
-  --overlay: oklch(21.03% 0.04 277.31);
-  --overlay-foreground: oklch(99.11% 0 0);
-  --scrollbar: oklch(70.5% 0.02 277.31);
-  --segment: oklch(39.64% 0.02 277.31);
-  --segment-foreground: oklch(99.11% 0 0);
-  --separator: oklch(25% 0.02 277.31);
-  --success: oklch(73.29% 0.2012 153.63);
-  --success-foreground: oklch(21.03% 0.0059 153.63);
-  --surface: oklch(21.03% 0.04 277.31);
-  --surface-foreground: oklch(99.11% 0 0);
-  --warning: oklch(82.03% 0.1444 79.16);
-  --warning-foreground: oklch(21.03% 0.0059 79.16);
+  --accent: #cba6f7;
+  --accent-foreground: #11111b;
+  --background: #1e1e2e;
+  --border: #313244;
+  --danger: #f38ba8;
+  --danger-foreground: #11111b;
+  --default: #45475a;
+  --default-foreground: #cdd6f4;
+  --field-background: #313244;
+  --field-foreground: #cdd6f4;
+  --field-placeholder: #a6adc8;
+  --focus: #f5e0dc;
+  --foreground: #cdd6f4;
+  --muted: #bac2de;
+  --overlay: #181825;
+  --overlay-foreground: #cdd6f4;
+  --scrollbar: #585b70;
+  --segment: #45475a;
+  --segment-foreground: #cdd6f4;
+  --separator: #313244;
+  --success: #a6e3a1;
+  --success-foreground: #11111b;
+  --surface: #313244;
+  --surface-foreground: #cdd6f4;
+  --warning: #f9e2af;
+  --warning-foreground: #11111b;
 
   /* Border Radius */
   --radius: 0.25rem;

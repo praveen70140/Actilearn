@@ -1,16 +1,13 @@
 
-# syntax=docker.io/docker/dockerfile:1
-
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy only dependency files first (for layer caching)
+# Install deps first (cached layer)
 COPY package.json package-lock.json ./
-
 RUN npm install
 
-# Copy the rest of the source
+# Copy source code
 COPY . .
 
 EXPOSE 3000
