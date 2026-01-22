@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Controller, useForm } from 'react-hook-form';
 import { registerUserSchema } from '@/lib/zod/register-user';
@@ -12,7 +11,6 @@ import FormError from '@/components/form/form-error';
 import FormSuccess from '@/components/form/form-success';
 import { registerUser } from '@/actions/auth/register-user';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
-import { DEFAULT_LOGGEDUSER_REDIRECT } from '@/lib/constants';
 
 export default function RegisterPage() {
   const {
@@ -48,7 +46,6 @@ export default function RegisterPage() {
               password: '',
               confirmPassword: '',
             });
-            redirect(DEFAULT_LOGGEDUSER_REDIRECT);
           }
           if (data && data.error) {
             setError(data.error);
@@ -58,61 +55,6 @@ export default function RegisterPage() {
           setError(err.message);
         });
     });
-
-    // // Basic validation
-    // if (password !== confirmPassword) {
-    //   setError('Passwords do not match');
-    //   return;
-    // }
-    // if (password.length < 8) {
-    //   setError('Password must be at least 8 characters long');
-    //   return;
-    // }
-    // setLoading(true);
-    // try {
-    //   const result = await signUp.email({
-    //     email,
-    //     password,
-    //     name,
-    //     callbackURL: '/dashboard',
-    //   });
-    //   if (result.error) {
-    //     setError(
-    //       result.error.message || 'Registration failed. Please try again.',
-    //     );
-    //   } else {
-    //     // Successful registration - redirect to dashboard (user is auto-signed in)
-    //     // router.push('/dashboard');
-    //   }
-    // // Basic validation
-    // if (password !== confirmPassword) {
-    //   setError('Passwords do not match');
-    //   return;
-    // }
-    // if (password.length < 8) {
-    //   setError('Password must be at least 8 characters long');
-    //   return;
-    // }
-    // setLoading(true);
-    // try {
-    //   const result = await signUp.email({
-    //     email,
-    //     password,
-    //     name,
-    //     callbackURL: '/dashboard',
-    //   });
-    //   if (result.error) {
-    //     setError(
-    //       result.error.message || 'Registration failed. Please try again.',
-    //     );
-    //   } else {
-    // } catch (err: any) {
-    //   setError(
-    //     err.message || 'An unexpected error occurred. Please try again.',
-    //   );
-    // } finally {
-    //   // setLoading(false);
-    // }
   };
 
   return (
@@ -121,7 +63,7 @@ export default function RegisterPage() {
         className="w-full max-w-md space-y-4"
         onSubmit={handleSubmit(onSubmit)}
       >
-        <h2 className="text-accent text-center text-3xl font-extrabold">
+        <h2 className="text-primary-500 text-center text-3xl font-extrabold">
           Create your account
         </h2>
 
@@ -250,7 +192,7 @@ export default function RegisterPage() {
 
         <p className="text-sm">
           Already have an account?{' '}
-          <Link href={'/login'} className="text-accent underline">
+          <Link href={'/login'} className="text-secondary underline">
             Log in here
           </Link>
         </p>

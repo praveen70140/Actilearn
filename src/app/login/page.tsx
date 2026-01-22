@@ -1,123 +1,143 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { signIn } from '@/lib/auth-client';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
+import { loginUserSchema } from '@/lib/zod/login-user';
+import { Controller, useForm } from 'react-hook-form';
+import z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button, Form, Input } from '@heroui/react';
+import { IconEye, IconEyeClosed } from '@tabler/icons-react';
+import FormError from '@/components/form/form-error';
+import FormSuccess from '@/components/form/form-success';
+import { loginUser } from '@/actions/auth/login-user';
+import { useSession } from '@/lib/auth-client';
+import { router } from 'better-auth/api';
+import { useRouter } from 'next/navigation';
+import { DEFAULT_LOGGEDUSER_REDIRECT } from '@/lib/constants';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = useForm<z.infer<typeof loginUserSchema>>({
+    resolver: zodResolver(loginUserSchema),
+    mode: 'onBlur',
+  });
+
+  const [error, setError] = useState<string | undefined>('');
+  const [success, setSuccess] = useState<string | undefined>('');
+  const [isPending, startTransition] = useTransition();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const { data: session, refetch } = useSession();
+
+  const onSubmit = async (formData: z.infer<typeof loginUserSchema>) => {
     setError('');
-    setLoading(true);
+    setSuccess('');
 
-    try {
-      const result = await signIn.email({
-        email,
-        password,
-        callbackURL: '/dashboard',
-      });
-
-      if (result.error) {
-        setError(
-          result.error.message ||
-            'Login failed. Please check your credentials.',
-        );
-      } else {
-        // Successful login - redirect to dashboard
-        router.push('/dashboard');
-      }
-    } catch (err: any) {
-      setError(
-        err.message || 'An unexpected error occurred. Please try again.',
-      );
-    } finally {
-      setLoading(false);
-    }
+    startTransition(async () => {
+      loginUser(formData)
+        .then((data) => {
+          if (data && data.success) {
+            setSuccess(data.success);
+          }
+          if (data && data.error) {
+            setError(data.error);
+          }
+        })
+        .catch((err: Error) => {
+          setError(err.message);
+        });
+    });
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
-              {error}
-            </div>
+    <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <Form
+        className="w-full max-w-md space-y-4"
+        onSubmit={handleSubmit(onSubmit)}
+      >
+        <h2 className="text-primary-500 text-center text-3xl font-extrabold">
+          Sign in to your account
+        </h2>
+        <p>{JSON.stringify(session)}</p>
+
+        <Controller
+          control={control}
+          name="email"
+          render={({
+            field: { name, value, onChange, onBlur, ref },
+            fieldState: { invalid, error },
+          }) => (
+            <Input
+              name={name}
+              value={value}
+              onChange={onChange}
+              onBlur={onBlur}
+              ref={ref}
+              type="email"
+              isRequired
+              validationBehavior="aria"
+              isInvalid={invalid}
+              label="Email"
+              placeholder="Enter your email"
+              errorMessage={error?.message}
+            />
           )}
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="relative mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
-                placeholder="Enter your email"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="relative mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
-                placeholder="Enter your password"
-              />
-            </div>
-          </div>
+        />
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
+        <Controller
+          control={control}
+          name="password"
+          render={({
+            field: { name, value, onChange, onBlur, ref },
+            fieldState: { invalid, error },
+          }) => (
+            <Input
+              name={name}
+              value={value}
+              onChange={onChange}
+              onBlur={onBlur}
+              ref={ref}
+              type={isPasswordVisible ? 'text' : 'password'}
+              isRequired
+              validationBehavior="aria"
+              isInvalid={invalid}
+              label="Password"
+              placeholder="Enter your password"
+              errorMessage={error?.message}
+              endContent={
+                <Button
+                  isIconOnly
+                  variant="light"
+                  size="sm"
+                  onPress={() => setIsPasswordVisible((e) => !e)}
+                >
+                  {isPasswordVisible ? <IconEye /> : <IconEyeClosed />}
+                </Button>
+              }
+            />
+          )}
+        />
+        <FormError message={error} />
+        <FormSuccess message={success} />
 
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link
-                href="/register"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                Sign up here
-              </Link>
-            </p>
-          </div>
-        </form>
-      </div>
+        <Button type="submit" color="primary" fullWidth isDisabled={isPending}>
+          Sign In
+        </Button>
+
+        <p className="text-sm">
+          Don't have an account?{' '}
+          <Link href={'/register'} className="text-secondary underline">
+            Sign up here
+          </Link>
+        </p>
+      </Form>
     </div>
   );
 }

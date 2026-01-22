@@ -33,6 +33,6 @@ export const registerUser = async (
   } else {
     // Successful registration - redirect to dashboard (user is auto-signed in)
     redirect(DEFAULT_LOGGEDUSER_REDIRECT);
-    return { success: 'Logged in successfully' };
+    return { success: 'Signed up successfully' };
   }
 };
