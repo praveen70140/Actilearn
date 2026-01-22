@@ -1,18 +1,10 @@
 'use client';
-
-import {
-  Button,
-  Card,
-  CardHeader,
-  CardBody,
-  Select,
-  SelectItem, // Correct import
-} from '@heroui/react';
-import {
-  IconArrowLeft,
-  IconArrowRight,
-  IconHelpCircle
-} from '@tabler/icons-react';
+import { useState, useEffect } from 'react';
+import { Button, Card, CardHeader, CardBody, Select, SelectItem } from '@heroui/react';
+import { IconArrowLeft, IconArrowRight } from '@tabler/icons-react';
+import { QuestionRenderer } from './QuestionPanelComponents/QuestionRenderer';
+import { FeedbackBanner } from './QuestionPanelComponents/FeedbackBanner';
+import { SolutionBox } from './QuestionPanelComponents/SolutionBox';
 
 export function QuestionsPanel({
   lesson,
@@ -22,77 +14,92 @@ export function QuestionsPanel({
   onPrevQuestion,
   onNextQuestion,
 }: any) {
+  const [answer, setAnswer] = useState<string>('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [feedback, setFeedback] = useState<any>(null);
+
+  useEffect(() => {
+    setAnswer('');
+    setIsSubmitted(false);
+    setFeedback(null);
+  }, [currentQuestion.id]);
+
+  const handleCheck = () => {
+    if (!answer) return;
+    let isCorrect = false;
+    if (currentQuestion.type === 'mcq') isCorrect = parseInt(answer) === currentQuestion.correctAnswer;
+    else if (currentQuestion.type === 'numerical') isCorrect = parseFloat(answer) === currentQuestion.correctAnswer;
+    else if (currentQuestion.type === 'subjective') isCorrect = answer.trim().length > 10;
+
+    setIsSubmitted(true);
+    setFeedback({
+      status: isCorrect ? 'correct' : 'incorrect',
+      message: isCorrect ? 'Correct Answer!' : 'That is not quite right.'
+    });
+  };
+
   return (
-    <div className="w-1/2 p-8 flex flex-col bg-[#181825]">
-      {/* Question Navigation Bar */}
+    <div className="w-1/2 p-8 flex flex-col bg-[#181825] h-full overflow-y-auto">
       <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          {/* Corrected HeroUI Select Syntax */}
-          <Select
-            className="w-48"
-            variant="bordered"
-            size="sm"
-            disallowEmptySelection
-            aria-label="Select Question"
-            selectedKeys={new Set([currentQuestion.id.toString()])}
-            onSelectionChange={(keys) => onQuestionChange(keys)}
-          >
-            {lesson.questions.map((q: any, i: number) => (
-              <SelectItem key={q.id} textValue={`Question ${i + 1}`}>
-                Question {i + 1}
-              </SelectItem>
-            ))}
-          </Select>
-
-          <div className="flex border border-[#313244] rounded-lg overflow-hidden">
-            <Button
-              isIconOnly
-              variant="light"
-              size="sm"
-              onPress={onPrevQuestion}
-              isDisabled={currentQuestionIndex === 0}
-              className="rounded-none border-r border-[#313244]"
+        {/* FIXED SELECT COMPONENT */}
+        <Select
+          className="w-48"
+          variant="bordered"
+          size="sm"
+          aria-label="Select Question"
+          selectedKeys={new Set([currentQuestion.id.toString()])}
+          onSelectionChange={(keys) => onQuestionChange(keys)}
+          classNames={{
+            trigger: "border-[#313244] bg-[#1e1e2e] data-[hover=true]:border-primary",
+            value: "text-white font-medium",
+            popoverContent: "bg-[#1e1e2e] border border-[#313244]",
+            listbox: "bg-[#1e1e2e]",
+          }}
+        >
+          {lesson.questions.map((q: any, i: number) => (
+            <SelectItem 
+                key={q.id.toString()} 
+                textValue={`Question ${i + 1}`}
+                className="text-[#bac2de] data-[hover=true]:bg-[#2a2a3c] data-[hover=true]:text-white"
             >
-              <IconArrowLeft size={16} />
-            </Button>
-            <Button
-              isIconOnly
-              variant="light"
-              size="sm"
-              onPress={onNextQuestion}
-              isDisabled={currentQuestionIndex === lesson.questions.length - 1}
-              className="rounded-none"
-            >
-              <IconArrowRight size={16} />
-            </Button>
-          </div>
-        </div>
+              Question {i + 1}
+            </SelectItem>
+          ))}
+        </Select>
 
-        <div className="flex items-center gap-2 text-xs text-[#585b70]">
-          <IconHelpCircle size={14} />
-          <span>{currentQuestionIndex + 1} of {lesson.questions.length}</span>
+        <div className="flex border border-[#313244] rounded-lg overflow-hidden bg-[#1e1e2e]">
+          <Button isIconOnly size="sm" variant="light" onPress={onPrevQuestion} isDisabled={currentQuestionIndex === 0} className="text-[#bac2de] hover:text-white"><IconArrowLeft size={16} /></Button>
+          <Button isIconOnly size="sm" variant="light" onPress={onNextQuestion} isDisabled={currentQuestionIndex === lesson.questions.length - 1} className="text-[#bac2de] hover:text-white"><IconArrowRight size={16} /></Button>
         </div>
       </div>
 
-      {/* Corrected HeroUI Card Syntax */}
-      <Card className="bg-[#1e1e2e] border border-[#313244] p-4 flex-1 shadow-2xl">
-        <CardHeader className="flex flex-col items-start px-6">
+      <Card className="bg-[#1e1e2e] border border-[#313244] p-6 shadow-2xl flex-1">
+        <CardHeader className="flex flex-col items-start px-4">
           <p className="text-tiny uppercase font-bold text-[#585b70]">Step {currentQuestionIndex + 1}</p>
-          <h4 className="text-xl font-bold text-white">Question {currentQuestionIndex + 1}</h4>
+          <h4 className="text-2xl font-bold text-white">Question {currentQuestionIndex + 1}</h4>
         </CardHeader>
-        <CardBody className="px-6">
-          <p className="text-lg leading-relaxed text-[#bac2de]">
-            {currentQuestion.text}
-          </p>
-          <div className="mt-12 h-32 border-2 border-dashed border-[#313244] rounded-2xl flex items-center justify-center text-[#585b70]">
-            Interactive Response Area
+        <CardBody className="gap-8 px-4">
+          <p className="text-lg text-[#bac2de]">{currentQuestion.text}</p>
+          <QuestionRenderer
+            question={currentQuestion}
+            value={answer}
+            onChange={setAnswer}
+            isDisabled={isSubmitted && feedback?.status === 'correct'}
+          />
+          <div className="flex flex-col gap-4">
+            <Button
+              color={feedback?.status === 'correct' ? "success" : "primary"}
+              onPress={handleCheck}
+              isDisabled={!answer || (isSubmitted && feedback?.status === 'correct')}
+              className="font-bold h-12 text-black data-[color=primary]:text-white"
+            >
+              Check Answer
+            </Button>
+            <FeedbackBanner feedback={feedback} />
+            {isSubmitted && <SolutionBox solution={currentQuestion.solution} />}
           </div>
         </CardBody>
       </Card>
-
-      <p className="mt-4 text-center text-[10px] text-[#45475a] uppercase tracking-widest">
-        Knowledge check for {lesson.title}
-      </p>
     </div>
   );
 }
