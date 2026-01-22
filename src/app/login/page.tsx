@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { loginUserSchema } from '@/lib/zod/login-user';
 import { Controller, useForm } from 'react-hook-form';
@@ -11,10 +11,7 @@ import { IconEye, IconEyeClosed } from '@tabler/icons-react';
 import FormError from '@/components/form/form-error';
 import FormSuccess from '@/components/form/form-success';
 import { loginUser } from '@/actions/auth/login-user';
-import { useSession } from '@/lib/auth-client';
-import { router } from 'better-auth/api';
 import { useRouter } from 'next/navigation';
-import { DEFAULT_LOGGEDUSER_REDIRECT } from '@/lib/constants';
 
 export default function LoginPage() {
   const {
@@ -33,8 +30,6 @@ export default function LoginPage() {
   const [isPending, startTransition] = useTransition();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const router = useRouter();
-
-  const { data: session, refetch } = useSession();
 
   const onSubmit = async (formData: z.infer<typeof loginUserSchema>) => {
     setError('');
@@ -65,7 +60,6 @@ export default function LoginPage() {
         <h2 className="text-primary-500 text-center text-3xl font-extrabold">
           Sign in to your account
         </h2>
-        <p>{JSON.stringify(session)}</p>
 
         <Controller
           control={control}

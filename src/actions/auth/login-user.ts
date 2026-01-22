@@ -1,7 +1,6 @@
 'use server';
 
-import { signIn } from '@/lib/auth-client';
-import { DEFAULT_LOGGEDUSER_REDIRECT } from '@/lib/constants';
+import { auth } from '@/lib/auth';
 import { loginUserSchema } from '@/lib/zod/login-user';
 import { redirect } from 'next/navigation';
 import z from 'zod';
@@ -18,18 +17,18 @@ export const loginUser = async (formData: z.infer<typeof loginUserSchema>) => {
   }
   const { data } = validatedFields;
 
-  const result = await signIn.email({
-    ...data,
-    callbackURL: '/dashboard',
+  const result = await auth.api.signInEmail({
+    body: { ...data },
+    asResponse: true,
   });
-  if (result.error) {
+  if (!result.ok) {
     return {
-      error:
-        result.error.message || 'Login failed. Please check your credentials.',
+      error: 'Login failed. Please check your credentials.',
     };
   } else {
     // Successful login - redirect to dashboard
+
     redirect('/dashboard');
-    return { success: 'Logged in successfully' };
+    return { success: JSON.stringify(result) };
   }
 };
