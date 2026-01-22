@@ -1,25 +1,23 @@
 'use client';
 
 import NextLink from 'next/link';
-import { Card, Button } from '@heroui/react';
+import { Card, Button, CardHeader, CardBody, CardFooter } from '@heroui/react';
 
 export default function StreakPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50/50">
       <Card className="w-full max-w-md text-center">
-        <Card.Header>
-          <Card.Title className="text-2xl">Streak</Card.Title>
-        </Card.Header>
-        <Card.Content>
+        <CardHeader>
+          <h3 className="text-2xl">Streak</h3>
+        </CardHeader>
+        <CardBody>
           <p>This is where the "Streak" feature will be.</p>
-        </Card.Content>
-        <Card.Footer>
+        </CardBody>
+        <CardFooter>
           <NextLink href="/dashboard">
-            <Button variant="secondary">
-              &larr; Back to Dashboard
-            </Button>
+            <Button variant="bordered">&larr; Back to Dashboard</Button>
           </NextLink>
-        </Card.Footer>
+        </CardFooter>
       </Card>
     </div>
   );

@@ -30,9 +30,9 @@ export default function CourseViewPage() {
   // --- LOGIC: LESSON NAVIGATION ---
   const handleNextLesson = () => {
     if (currentLessonIndex < currentChapter.lessons.length - 1) {
-      setCurrentLessonIndex(prev => prev + 1);
+      setCurrentLessonIndex((prev) => prev + 1);
     } else if (currentChapterIndex < courseData.chapters.length - 1) {
-      setCurrentChapterIndex(prev => prev + 1);
+      setCurrentChapterIndex((prev) => prev + 1);
       setCurrentLessonIndex(0);
     }
     setCurrentQuestionIndex(0); // Reset questions for new lesson
@@ -40,11 +40,13 @@ export default function CourseViewPage() {
 
   const handlePrevLesson = () => {
     if (currentLessonIndex > 0) {
-      setCurrentLessonIndex(prev => prev - 1);
+      setCurrentLessonIndex((prev) => prev - 1);
     } else if (currentChapterIndex > 0) {
       const prevChapterIdx = currentChapterIndex - 1;
       setCurrentChapterIndex(prevChapterIdx);
-      setCurrentLessonIndex(courseData.chapters[prevChapterIdx].lessons.length - 1);
+      setCurrentLessonIndex(
+        courseData.chapters[prevChapterIdx].lessons.length - 1,
+      );
     }
     setCurrentQuestionIndex(0);
   };
@@ -52,26 +54,28 @@ export default function CourseViewPage() {
   // --- LOGIC: QUESTION NAVIGATION ---
   const handleNextQuestion = () => {
     if (currentQuestionIndex < currentLesson.questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
 
   const handlePrevQuestion = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentQuestionIndex((prev) => prev - 1);
     }
   };
 
-  if (!courseData) return (
-    <div className="flex flex-col h-screen items-center justify-center bg-[#1e1e2e] gap-4">
-      {/* Corrected: color="accent" is the v3 semantic key */}
-      <Spinner color="accent" size="lg" />
-      <p className="text-[#b4befe] text-sm font-medium animate-pulse">
-        Loading Payload...
-      </p>
-    </div>
-  ); return (
-    <div className="min-h-screen bg-[#1e1e2e] text-[#cdd6f4] overflow-hidden selection:bg-[#f5e0dc] selection:text-[#1e1e2e]">
+  if (!courseData)
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-[#1e1e2e]">
+        {/* Corrected: color="accent" is the v3 semantic key */}
+        <Spinner color="primary" size="lg" />
+        <p className="animate-pulse text-sm font-medium text-[#b4befe]">
+          Loading Payload...
+        </p>
+      </div>
+    );
+  return (
+    <div className="min-h-screen overflow-hidden bg-[#1e1e2e] text-[#cdd6f4] selection:bg-[#f5e0dc] selection:text-[#1e1e2e]">
       {/* 1. Modal for Entry */}
       <PreCourseModal
         isOpen={showModal}
@@ -87,7 +91,7 @@ export default function CourseViewPage() {
             currentChapter={currentChapter}
             currentLesson={currentLesson}
             onChapterChange={(key: any) => {
-              const idx = courseData.chapters.findIndex(c => c.id === key);
+              const idx = courseData.chapters.findIndex((c) => c.id === key);
               if (idx !== -1) {
                 setCurrentChapterIndex(idx);
                 setCurrentLessonIndex(0);
@@ -95,7 +99,7 @@ export default function CourseViewPage() {
               }
             }}
             onLessonChange={(key: any) => {
-              const idx = currentChapter.lessons.findIndex(l => l.id === key);
+              const idx = currentChapter.lessons.findIndex((l) => l.id === key);
               if (idx !== -1) {
                 setCurrentLessonIndex(idx);
                 setCurrentQuestionIndex(0);
@@ -103,8 +107,13 @@ export default function CourseViewPage() {
             }}
             onPrevLesson={handlePrevLesson}
             onNextLesson={handleNextLesson}
-            isPrevDisabled={currentChapterIndex === 0 && currentLessonIndex === 0}
-            isNextDisabled={currentChapterIndex === courseData.chapters.length - 1 && currentLessonIndex === currentChapter.lessons.length - 1}
+            isPrevDisabled={
+              currentChapterIndex === 0 && currentLessonIndex === 0
+            }
+            isNextDisabled={
+              currentChapterIndex === courseData.chapters.length - 1 &&
+              currentLessonIndex === currentChapter.lessons.length - 1
+            }
             onExit={() => router.push('/dashboard')}
           />
 
@@ -118,7 +127,9 @@ export default function CourseViewPage() {
               currentQuestion={currentQuestion}
               currentQuestionIndex={currentQuestionIndex}
               onQuestionChange={(key: any) => {
-                const idx = currentLesson.questions.findIndex(q => q.id === key);
+                const idx = currentLesson.questions.findIndex(
+                  (q) => q.id === key,
+                );
                 if (idx !== -1) setCurrentQuestionIndex(idx);
               }}
               onPrevQuestion={handlePrevQuestion}
