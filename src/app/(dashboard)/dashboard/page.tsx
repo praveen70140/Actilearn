@@ -68,6 +68,7 @@ export default function DashboardPage() {
   }, [session, isPending, router]);
 
   const handleSignOut = async () => {
+    // TODO:Properly handle sign-out server side
     await signOut({
       fetchOptions: {
         onSuccess: () => {
