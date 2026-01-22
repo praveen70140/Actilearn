@@ -1,14 +1,11 @@
-import { object, string } from 'zod';
+import { email, object, string } from 'zod';
 
 export const registerUserSchema = object({
   name: string({ error: 'Name is required' }).min(
     3,
     'Name must be at least 3 characters long',
   ),
-  username: string({ error: 'Username is required' }).min(
-    3,
-    'Username must be at least 3 characters long',
-  ),
+  email: email({ error: 'Email is required' }),
   password: string({ error: 'Password is required' })
     .min(8, 'Password must be at least 8 characters long')
     .refine(
