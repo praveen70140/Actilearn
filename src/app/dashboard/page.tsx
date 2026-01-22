@@ -162,7 +162,7 @@ export default function DashboardPage() {
                                     </div>
                                 </Card.Content>
                                 <Card.Footer>
-                                    <NextLink href="#" className="w-full">
+                                    <NextLink href="/course/view" className="w-full">
                                         <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">View Course</Button>
                                     </NextLink>
                                 </Card.Footer>

@@ -44,3 +44,17 @@
   /* Make sure to load Inter font in your app */
   --font-sans: var(--font-glacial-regular);
 }
+
+/* globals.css */
+.prose h1, .prose h2, .prose h3 {
+  color: #fab387 !important; /* Mocha Peach */
+}
+.prose strong {
+  color: #f38ba8 !important; /* Mocha Red */
+}
+.prose code {
+  color: #94e2d5 !important; /* Mocha Teal */
+  background: #313244;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
