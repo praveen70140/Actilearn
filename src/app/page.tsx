@@ -57,16 +57,17 @@ export default function Home() {
             </CardBody>
             <CardFooter className="gap-2 self-center">
               <NextLink href="/register">
-                <Button size="lg">Register</Button>
+                <Button color="primary" size="lg">
+                  Register
+                </Button>
               </NextLink>
               <NextLink href="/login">
-                <Button variant="faded" size="lg">
+                <Button variant="bordered" size="lg">
                   Log In
                 </Button>
               </NextLink>
             </CardFooter>
           </Card>
-          /
         </div>
       </div>
     </div>

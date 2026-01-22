@@ -1,7 +1,9 @@
 'use server';
 
 import { signUp } from '@/lib/auth-client';
+import { DEFAULT_LOGGEDUSER_REDIRECT } from '@/lib/constants';
 import { registerUserSchema } from '@/lib/zod/register-user';
+import { redirect } from 'next/navigation';
 import z from 'zod';
 
 export const registerUser = async (
@@ -30,6 +32,7 @@ export const registerUser = async (
     };
   } else {
     // Successful registration - redirect to dashboard (user is auto-signed in)
+    redirect(DEFAULT_LOGGEDUSER_REDIRECT);
     return { success: 'Logged in successfully' };
   }
 };

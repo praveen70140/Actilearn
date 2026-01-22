@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { redirect, useRouter } from 'next/navigation';
-import { signUp } from '@/lib/auth-client';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Controller, useForm } from 'react-hook-form';
 import { registerUserSchema } from '@/lib/zod/register-user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import { Alert, Button, Form, Input } from '@heroui/react';
+import { Button, Form, Input } from '@heroui/react';
 import FormError from '@/components/form/form-error';
 import FormSuccess from '@/components/form/form-success';
 import { registerUser } from '@/actions/auth/register-user';
+import { IconEye, IconEyeClosed } from '@tabler/icons-react';
+import { DEFAULT_LOGGEDUSER_REDIRECT } from '@/lib/constants';
 
 export default function RegisterPage() {
   const {
@@ -47,7 +48,7 @@ export default function RegisterPage() {
               password: '',
               confirmPassword: '',
             });
-            redirect('/dashboard');
+            redirect(DEFAULT_LOGGEDUSER_REDIRECT);
           }
           if (data && data.error) {
             setError(data.error);
@@ -190,6 +191,16 @@ export default function RegisterPage() {
               label="Password"
               placeholder="Enter your password"
               errorMessage={error?.message}
+              endContent={
+                <Button
+                  isIconOnly
+                  variant="light"
+                  size="sm"
+                  onPress={() => setIsPasswordVisible((e) => !e)}
+                >
+                  {isPasswordVisible ? <IconEye /> : <IconEyeClosed />}
+                </Button>
+              }
             />
           )}
         />
@@ -214,6 +225,16 @@ export default function RegisterPage() {
               label={'Confirm Password'}
               placeholder="Confirm your password"
               errorMessage={error?.message}
+              endContent={
+                <Button
+                  isIconOnly
+                  variant="light"
+                  size="sm"
+                  onPress={() => setIsConfirmPasswordVisible((e) => !e)}
+                >
+                  {isConfirmPasswordVisible ? <IconEye /> : <IconEyeClosed />}
+                </Button>
+              }
             />
           )}
         />
@@ -223,7 +244,7 @@ export default function RegisterPage() {
         <FormError message={error} />
         <FormSuccess message={success} />
 
-        <Button type="submit" fullWidth isDisabled={isPending}>
+        <Button type="submit" color="primary" fullWidth isDisabled={isPending}>
           Create Account
         </Button>
 
