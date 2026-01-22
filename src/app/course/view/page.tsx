@@ -2,49 +2,105 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-// Corrected imports for HeroUI v3
-import {
-  Button,
-  Card,
-  Select,
-  Spinner,
-  Modal,
-  Label,
-  ListBox,
-  useOverlayState
-} from '@heroui/react';
-import { IconArrowLeft, IconArrowRight, IconX } from '@tabler/icons-react';
+import { Spinner } from '@heroui/react';
+import { PreCourseModal } from './components/PreCourseModal';
+import { CourseHeader } from './components/CourseHeader';
+import { TheoryPanel } from './components/TheoryPanel';
+import { QuestionsPanel } from './components/QuestionsPanel';
 
-// Placeholder Data
 const courseData = {
   id: 'course-1',
   title: 'Web Development Fundamentals',
   chapters: [
     {
       id: 'chapter-1',
-      title: 'Introduction to HTML',
+      title: '1. HTML Foundations',
       lessons: [
         {
           id: 'lesson-1-1',
           title: 'What is HTML?',
-          theory: `<p>HTML is the standard markup language...</p>`,
+          theory: `
+            <p><strong>HTML</strong> is the skeleton of the web.</p>
+            <p>It defines structure, not behavior or styling.</p>
+            <ul>
+              <li>Elements</li>
+              <li>Tags</li>
+              <li>Attributes</li>
+            </ul>
+          `,
           questions: [
-            { id: 'q1', type: 'mcq', text: 'What does HTML stand for?' },
-            { id: 'q2', type: 'open', text: 'Explain the purpose of HTML tags.' },
+            { id: 'q-1-1-1', text: 'What does HTML stand for?' },
+            { id: 'q-1-1-2', text: 'Is HTML a programming language?' },
+            { id: 'q-1-1-3', text: 'Which tag is used for the largest heading?' },
+          ],
+        },
+        {
+          id: 'lesson-1-2',
+          title: 'Basic Tags',
+          theory: `
+            <p>HTML provides a set of predefined tags.</p>
+            <p>Common tags include:</p>
+            <pre>&lt;div&gt; &lt;p&gt; &lt;span&gt;</pre>
+          `,
+          questions: [
+            { id: 'q-1-2-1', text: 'What tag is used to create a paragraph?' },
+            { id: 'q-1-2-2', text: 'Which tag is non-semantic by default?' },
           ],
         },
       ],
     },
     {
       id: 'chapter-2',
-      title: 'Introduction to CSS',
+      title: '2. CSS Basics',
       lessons: [
         {
           id: 'lesson-2-1',
           title: 'What is CSS?',
-          theory: `<p>CSS is used to style HTML...</p>`,
+          theory: `
+            <p><strong>CSS</strong> controls how HTML looks.</p>
+            <p>It handles layout, colors, spacing, and animations.</p>
+          `,
           questions: [
-            { id: 'q5', type: 'mcq', text: 'What does CSS stand for?' },
+            { id: 'q-2-1-1', text: 'What does CSS stand for?' },
+            { id: 'q-2-1-2', text: 'Can CSS exist without HTML?' },
+            { id: 'q-2-1-3', text: 'Which property controls text color?' },
+            { id: 'q-2-1-4', text: 'What selector targets a class?' },
+          ],
+        },
+        {
+          id: 'lesson-2-2',
+          title: 'Box Model',
+          theory: `
+            <p>The CSS box model defines spacing and sizing.</p>
+            <ol>
+              <li>Content</li>
+              <li>Padding</li>
+              <li>Border</li>
+              <li>Margin</li>
+            </ol>
+          `,
+          questions: [
+            { id: 'q-2-2-1', text: 'Which box model layer is outermost?' },
+            { id: 'q-2-2-2', text: 'Does padding affect element size?' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'chapter-3',
+      title: '3. JavaScript Essentials',
+      lessons: [
+        {
+          id: 'lesson-3-1',
+          title: 'JS Basics',
+          theory: `
+            <p>JavaScript adds behavior to web pages.</p>
+            <p>It runs in the browser and on the server.</p>
+          `,
+          questions: [
+            { id: 'q-3-1-1', text: 'Is JavaScript synchronous by default?' },
+            { id: 'q-3-1-2', text: 'What keyword declares a constant?' },
+            { id: 'q-3-1-3', text: 'What does DOM stand for?' },
           ],
         },
       ],
@@ -54,211 +110,95 @@ const courseData = {
 
 export default function CourseViewPage() {
   const router = useRouter();
-
-  // State management
   const [showModal, setShowModal] = useState(true);
+
+  // Navigation State
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
-  const currentChapter = courseData?.chapters?.[currentChapterIndex];
-  const currentLesson = currentChapter?.lessons?.[currentLessonIndex];
-  const currentQuestion = currentLesson?.questions?.[currentQuestionIndex];
+  const currentChapter = courseData.chapters[currentChapterIndex];
+  const currentLesson = currentChapter.lessons[currentLessonIndex];
+  const currentQuestion = currentLesson.questions[currentQuestionIndex];
 
-  const totalChapters = courseData?.chapters?.length || 0;
-  const totalLessonsInChapter = currentChapter?.lessons?.length || 0;
-  const totalQuestionsInLesson = currentLesson?.questions?.length || 0;
-
+  // Logic: Lesson Navigation (Navbar)
   const handleNextLesson = () => {
-    if (currentLessonIndex < totalLessonsInChapter - 1) {
+    if (currentLessonIndex < currentChapter.lessons.length - 1) {
       setCurrentLessonIndex(currentLessonIndex + 1);
-      setCurrentQuestionIndex(0);
-    } else if (currentChapterIndex < totalChapters - 1) {
+    } else if (currentChapterIndex < courseData.chapters.length - 1) {
       setCurrentChapterIndex(currentChapterIndex + 1);
       setCurrentLessonIndex(0);
-      setCurrentQuestionIndex(0);
+    }
+    setCurrentQuestionIndex(0);
+  };
+
+  const handlePrevLesson = () => {
+    if (currentLessonIndex > 0) {
+      setCurrentLessonIndex(currentLessonIndex - 1);
+    } else if (currentChapterIndex > 0) {
+      setCurrentChapterIndex(currentChapterIndex - 1);
+      setCurrentLessonIndex(courseData.chapters[currentChapterIndex - 1].lessons.length - 1);
+    }
+    setCurrentQuestionIndex(0);
+  };
+
+  // Logic: Question Navigation (Panel Header)
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < currentLesson.questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
     }
   };
 
-  const handlePreviousLesson = () => {
-    if (currentLessonIndex > 0) {
-      setCurrentLessonIndex(currentLessonIndex - 1);
-      setCurrentQuestionIndex(0);
-    } else if (currentChapterIndex > 0) {
-      const newChapterIndex = currentChapterIndex - 1;
-      setCurrentChapterIndex(newChapterIndex);
-      setCurrentLessonIndex(courseData.chapters[newChapterIndex].lessons.length - 1);
-      setCurrentQuestionIndex(0);
+  const handlePrevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
     }
   };
 
   if (!courseData) return <div className="flex h-screen items-center justify-center"><Spinner /></div>;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* 1. CORRECTED MODAL ANATOMY (v3) */}
-      <Modal isOpen={showModal} onOpenChange={setShowModal}>
-        <Modal.Backdrop isDismissable={false}>
-          <Modal.Container>
-            <Modal.Dialog>
-              <Modal.Header>
-                <Modal.Heading>Welcome to the Course!</Modal.Heading>
-              </Modal.Header>
-              <Modal.Body>
-                <p>You are about to start: {courseData.title}</p>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button variant="tertiary" onPress={() => router.push('/dashboard')}>Cancel</Button>
-                <Button slot="close">Continue to Course</Button>
-              </Modal.Footer>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
+    <div className="min-h-screen bg-[#1e1e2e] text-[#cdd6f4] overflow-hidden">
+      <PreCourseModal
+        isOpen={showModal}
+        onOpenChange={setShowModal}
+        courseTitle={courseData.title}
+      />
 
       {!showModal && (
         <>
-          <nav className="border-b border-divider bg-surface shadow-sm py-3 px-4">
-            <div className="mx-auto max-w-7xl flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <Button size="sm" variant="tertiary" onPress={() => router.push('/dashboard')}>
-                  <IconX size={16} /> Exit
-                </Button>
-                <h1 className="text-lg font-bold">{courseData.title}</h1>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* 2. CORRECTED SELECT ANATOMY (v3) */}
-                <Select
-                  className="w-48"
-                  selectedKey={currentChapter?.id}
-                  onSelectionChange={(key) => {
-                    const idx = courseData.chapters.findIndex(c => c.id === key);
-                    if (idx !== -1) {
-                      setCurrentChapterIndex(idx);
-                      setCurrentLessonIndex(0);
-                      setCurrentQuestionIndex(0);
-                    }
-                  }}
-                >
-                  <Select.Trigger>
-                    <Select.Value />
-                    <Select.Indicator />
-                  </Select.Trigger>
-                  <Select.Popover>
-                    <ListBox>
-                      {courseData.chapters.map((chapter) => (
-                        <ListBox.Item key={chapter.id} id={chapter.id} textValue={chapter.title}>
-                          {chapter.title}
-                        </ListBox.Item>
-                      ))}
-                    </ListBox>
-                  </Select.Popover>
-                </Select>
-
-                <Select
-                  className="w-48"
-                  selectedKey={currentLesson?.id}
-                  onSelectionChange={(key) => {
-                    const idx = currentChapter.lessons.findIndex(l => l.id === key);
-                    if (idx !== -1) {
-                      setCurrentLessonIndex(idx);
-                      setCurrentQuestionIndex(0);
-                    }
-                  }}
-                >
-                  <Select.Trigger>
-                    <Select.Value />
-                    <Select.Indicator />
-                  </Select.Trigger>
-                  <Select.Popover>
-                    <ListBox>
-                      {currentChapter.lessons.map((lesson) => (
-                        <ListBox.Item key={lesson.id} id={lesson.id} textValue={lesson.title}>
-                          {lesson.title}
-                        </ListBox.Item>
-                      ))}
-                    </ListBox>
-                  </Select.Popover>
-                </Select>
-
-                <Button
-                  variant="tertiary"
-                  onPress={handlePreviousLesson}
-                  isDisabled={currentChapterIndex === 0 && currentLessonIndex === 0}
-                >
-                  <IconArrowLeft size={16} /> Previous
-                </Button>
-                <Button
-                  variant="primary"
-                  onPress={handleNextLesson}
-                  isDisabled={currentChapterIndex === totalChapters - 1 && currentLessonIndex === totalLessonsInChapter - 1}
-                >
-                  Next <IconArrowRight size={16} />
-                </Button>
-              </div>
-            </div>
-          </nav>
+          <CourseHeader
+            courseData={courseData}
+            currentChapter={currentChapter}
+            currentLesson={currentLesson}
+            onChapterChange={(key: any) => {
+              const idx = courseData.chapters.findIndex(c => c.id === key);
+              if (idx !== -1) { setCurrentChapterIndex(idx); setCurrentLessonIndex(0); setCurrentQuestionIndex(0); }
+            }}
+            onLessonChange={(key: any) => {
+              const idx = currentChapter.lessons.findIndex(l => l.id === key);
+              if (idx !== -1) { setCurrentLessonIndex(idx); setCurrentQuestionIndex(0); }
+            }}
+            onPrevLesson={handlePrevLesson}
+            onNextLesson={handleNextLesson}
+            isPrevLessonDisabled={currentChapterIndex === 0 && currentLessonIndex === 0}
+            isNextLessonDisabled={currentChapterIndex === courseData.chapters.length - 1 && currentLessonIndex === currentChapter.lessons.length - 1}
+            onExit={() => router.push('/dashboard')}
+          />
 
           <main className="flex h-[calc(100vh-65px)]">
-            <div className="w-1/2 p-6 overflow-y-auto border-r border-divider">
-              <Card className="h-full p-4">
-                <Card.Header>
-                  <Card.Title>{currentLesson?.title}</Card.Title>
-                </Card.Header>
-                <Card.Content>
-                  <div dangerouslySetInnerHTML={{ __html: currentLesson?.theory || '' }} />
-                </Card.Content>
-              </Card>
-            </div>
-
-            <div className="w-1/2 p-6 overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Questions ({currentQuestionIndex + 1} / {totalQuestionsInLesson})</h2>
-                <Select
-                  className="w-48"
-                  selectedKey={currentQuestion?.id}
-                  onSelectionChange={(key) => {
-                    const idx = currentLesson.questions.findIndex(q => q.id === key);
-                    if (idx !== -1) setCurrentQuestionIndex(idx);
-                  }}
-                >
-                  <Select.Trigger>
-                    <Select.Value />
-                    <Select.Indicator />
-                  </Select.Trigger>
-                  <Select.Popover>
-                    <ListBox>
-                      {currentLesson?.questions.map((q, i) => (
-                        <ListBox.Item key={q.id} id={q.id} textValue={`Question ${i + 1}`}>
-                          {`Question ${i + 1}`}
-                        </ListBox.Item>
-                      ))}
-                    </ListBox>
-                  </Select.Popover>
-                </Select>
-              </div>
-              <div className="mt-4">
-                {currentQuestion ? (
-                  <Card className="p-4">
-                    <Card.Header>
-                      <Card.Title>Question {currentQuestionIndex + 1}</Card.Title>
-                    </Card.Header>
-                    <Card.Content>
-                      <p>{currentQuestion.text}</p>
-                    </Card.Content>
-                    <Card.Footer className="flex justify-between">
-                      <Button variant="tertiary" onPress={() => setCurrentQuestionIndex(currentQuestionIndex - 1)} isDisabled={currentQuestionIndex === 0}>
-                        Previous
-                      </Button>
-                      <Button variant="primary" onPress={() => setCurrentQuestionIndex(currentQuestionIndex + 1)} isDisabled={currentQuestionIndex === totalQuestionsInLesson - 1}>
-                        Next
-                      </Button>
-                    </Card.Footer>
-                  </Card>
-                ) : <p>No active questions.</p>}
-              </div>
-            </div>
+            <TheoryPanel lesson={currentLesson} />
+            <QuestionsPanel
+              lesson={currentLesson}
+              currentQuestion={currentQuestion}
+              currentQuestionIndex={currentQuestionIndex}
+              onQuestionChange={(key: any) => {
+                const idx = currentLesson.questions.findIndex(q => q.id === key);
+                if (idx !== -1) setCurrentQuestionIndex(idx);
+              }}
+              onPrevQuestion={handlePrevQuestion}
+              onNextQuestion={handleNextQuestion}
+            />
           </main>
         </>
       )}
