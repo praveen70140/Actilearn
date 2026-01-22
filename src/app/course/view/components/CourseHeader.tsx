@@ -39,7 +39,7 @@ export function CourseHeader({
       <div className="flex items-center gap-3">
         <Select
           className="w-48 text-sm"
-          selectedKeys={currentChapter.id}
+          selectedKeys={[currentChapter.id]}
           onSelectionChange={onChapterChange}
         >
           {courseData.chapters.map((c: any) => (
@@ -51,7 +51,7 @@ export function CourseHeader({
 
         <Select
           className="w-48 text-sm"
-          selectedKeys={currentLesson.id}
+          selectedKeys={[currentLesson.id]}
           onSelectionChange={onLessonChange}
         >
           {currentChapter.lessons.map((l: any) => (

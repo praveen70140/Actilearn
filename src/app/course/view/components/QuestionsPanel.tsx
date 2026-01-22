@@ -3,8 +3,10 @@
 import {
   Button,
   Card,
+  CardHeader,
+  CardBody,
   Select,
-  ListBox
+  SelectItem, // Correct import
 } from '@heroui/react';
 import {
   IconArrowLeft,
@@ -22,35 +24,30 @@ export function QuestionsPanel({
 }: any) {
   return (
     <div className="w-1/2 p-8 flex flex-col bg-[#181825]">
-      {/* Question Navigation Bar (Top-Inside-Section) */}
+      {/* Question Navigation Bar */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
+          {/* Corrected HeroUI Select Syntax */}
           <Select
-            className="w-40 text-sm"
-            variant="secondary"
-            selectedKey={currentQuestion.id}
-            onSelectionChange={onQuestionChange}
+            className="w-48"
+            variant="bordered"
+            size="sm"
+            disallowEmptySelection
+            aria-label="Select Question"
+            selectedKeys={new Set([currentQuestion.id.toString()])}
+            onSelectionChange={(keys) => onQuestionChange(keys)}
           >
-            <Select.Trigger className="h-8 min-h-8">
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                {lesson.questions.map((q: any, i: number) => (
-                  <ListBox.Item key={q.id} id={q.id} textValue={`Q${i + 1}`}>
-                    Question {i + 1}
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
+            {lesson.questions.map((q: any, i: number) => (
+              <SelectItem key={q.id} textValue={`Question ${i + 1}`}>
+                Question {i + 1}
+              </SelectItem>
+            ))}
           </Select>
 
-          {/* Distinguishable Question-level Prev/Next */}
           <div className="flex border border-[#313244] rounded-lg overflow-hidden">
             <Button
               isIconOnly
-              variant="tertiary"
+              variant="light"
               size="sm"
               onPress={onPrevQuestion}
               isDisabled={currentQuestionIndex === 0}
@@ -60,7 +57,7 @@ export function QuestionsPanel({
             </Button>
             <Button
               isIconOnly
-              variant="tertiary"
+              variant="light"
               size="sm"
               onPress={onNextQuestion}
               isDisabled={currentQuestionIndex === lesson.questions.length - 1}
@@ -77,19 +74,20 @@ export function QuestionsPanel({
         </div>
       </div>
 
-      {/* Question Card */}
-      <Card className="bg-[#1e1e2e] border border-[#313244] p-8 flex-1 shadow-2xl">
-        <Card.Header>
-          <Card.Title className="text-xl">Question {currentQuestionIndex + 1}</Card.Title>
-        </Card.Header>
-        <Card.Content className="mt-4">
+      {/* Corrected HeroUI Card Syntax */}
+      <Card className="bg-[#1e1e2e] border border-[#313244] p-4 flex-1 shadow-2xl">
+        <CardHeader className="flex flex-col items-start px-6">
+          <p className="text-tiny uppercase font-bold text-[#585b70]">Step {currentQuestionIndex + 1}</p>
+          <h4 className="text-xl font-bold text-white">Question {currentQuestionIndex + 1}</h4>
+        </CardHeader>
+        <CardBody className="px-6">
           <p className="text-lg leading-relaxed text-[#bac2de]">
             {currentQuestion.text}
           </p>
           <div className="mt-12 h-32 border-2 border-dashed border-[#313244] rounded-2xl flex items-center justify-center text-[#585b70]">
             Interactive Response Area
           </div>
-        </Card.Content>
+        </CardBody>
       </Card>
 
       <p className="mt-4 text-center text-[10px] text-[#45475a] uppercase tracking-widest">
