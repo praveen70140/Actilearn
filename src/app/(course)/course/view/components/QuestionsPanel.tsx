@@ -1,6 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Button, Card, CardHeader, CardBody, Select, SelectItem } from '@heroui/react';
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardBody,
+  Select,
+  SelectItem,
+} from '@heroui/react';
 import { IconArrowLeft, IconArrowRight } from '@tabler/icons-react';
 import { QuestionRenderer } from './QuestionPanelComponents/QuestionRenderer';
 import { FeedbackBanner } from './QuestionPanelComponents/FeedbackBanner';
@@ -27,20 +34,23 @@ export function QuestionsPanel({
   const handleCheck = () => {
     if (!answer) return;
     let isCorrect = false;
-    if (currentQuestion.type === 'mcq') isCorrect = parseInt(answer) === currentQuestion.correctAnswer;
-    else if (currentQuestion.type === 'numerical') isCorrect = parseFloat(answer) === currentQuestion.correctAnswer;
-    else if (currentQuestion.type === 'subjective') isCorrect = answer.trim().length > 10;
+    if (currentQuestion.type === 'mcq')
+      isCorrect = parseInt(answer) === currentQuestion.correctAnswer;
+    else if (currentQuestion.type === 'numerical')
+      isCorrect = parseFloat(answer) === currentQuestion.correctAnswer;
+    else if (currentQuestion.type === 'subjective')
+      isCorrect = answer.trim().length > 10;
 
     setIsSubmitted(true);
     setFeedback({
       status: isCorrect ? 'correct' : 'incorrect',
-      message: isCorrect ? 'Correct Answer!' : 'That is not quite right.'
+      message: isCorrect ? 'Correct Answer!' : 'That is not quite right.',
     });
   };
 
   return (
-    <div className="w-1/2 p-8 flex flex-col bg-[#181825] h-full overflow-y-auto">
-      <div className="flex justify-between items-center mb-6">
+    <div className="flex h-full w-1/2 flex-col overflow-y-auto bg-[#181825] p-8">
+      <div className="mb-6 flex items-center justify-between">
         {/* FIXED SELECT COMPONENT */}
         <Select
           className="w-48"
@@ -50,33 +60,56 @@ export function QuestionsPanel({
           selectedKeys={new Set([currentQuestion.id.toString()])}
           onSelectionChange={(keys) => onQuestionChange(keys)}
           classNames={{
-            trigger: "border-[#313244] bg-[#1e1e2e] data-[hover=true]:border-primary",
-            value: "text-white font-medium",
-            popoverContent: "bg-[#1e1e2e] border border-[#313244]",
-            listbox: "bg-[#1e1e2e]",
+            trigger:
+              'border-[#313244] bg-[#1e1e2e] data-[hover=true]:border-primary',
+            value: 'text-white font-medium',
+            popoverContent: 'bg-[#1e1e2e] border border-[#313244]',
+            listbox: 'bg-[#1e1e2e]',
           }}
         >
           {lesson.questions.map((q: any, i: number) => (
-            <SelectItem 
-                key={q.id.toString()} 
-                textValue={`Question ${i + 1}`}
-                className="text-[#bac2de] data-[hover=true]:bg-[#2a2a3c] data-[hover=true]:text-white"
+            <SelectItem
+              key={q.id.toString()}
+              textValue={`Question ${i + 1}`}
+              className="text-[#bac2de] data-[hover=true]:bg-[#2a2a3c] data-[hover=true]:text-white"
             >
               Question {i + 1}
             </SelectItem>
           ))}
         </Select>
 
-        <div className="flex border border-[#313244] rounded-lg overflow-hidden bg-[#1e1e2e]">
-          <Button isIconOnly size="sm" variant="light" onPress={onPrevQuestion} isDisabled={currentQuestionIndex === 0} className="text-[#bac2de] hover:text-white"><IconArrowLeft size={16} /></Button>
-          <Button isIconOnly size="sm" variant="light" onPress={onNextQuestion} isDisabled={currentQuestionIndex === lesson.questions.length - 1} className="text-[#bac2de] hover:text-white"><IconArrowRight size={16} /></Button>
+        <div className="flex overflow-hidden rounded-lg border border-[#313244] bg-[#1e1e2e]">
+          <Button
+            isIconOnly
+            size="sm"
+            variant="light"
+            onPress={onPrevQuestion}
+            isDisabled={currentQuestionIndex === 0}
+            className="text-[#bac2de] hover:text-white"
+          >
+            <IconArrowLeft size={16} />
+          </Button>
+          <Button
+            isIconOnly
+            size="sm"
+            variant="light"
+            onPress={onNextQuestion}
+            isDisabled={currentQuestionIndex === lesson.questions.length - 1}
+            className="text-[#bac2de] hover:text-white"
+          >
+            <IconArrowRight size={16} />
+          </Button>
         </div>
       </div>
 
-      <Card className="bg-[#1e1e2e] border border-[#313244] p-6 shadow-2xl flex-1">
+      <Card className="flex-1 border border-[#313244] bg-[#1e1e2e] p-6 shadow-2xl">
         <CardHeader className="flex flex-col items-start px-4">
-          <p className="text-tiny uppercase font-bold text-[#585b70]">Step {currentQuestionIndex + 1}</p>
-          <h4 className="text-2xl font-bold text-white">Question {currentQuestionIndex + 1}</h4>
+          <p className="text-tiny font-bold text-[#585b70] uppercase">
+            Step {currentQuestionIndex + 1}
+          </p>
+          <h4 className="text-2xl font-bold text-white">
+            Question {currentQuestionIndex + 1}
+          </h4>
         </CardHeader>
         <CardBody className="gap-8 px-4">
           <p className="text-lg text-[#bac2de]">{currentQuestion.text}</p>
@@ -88,10 +121,12 @@ export function QuestionsPanel({
           />
           <div className="flex flex-col gap-4">
             <Button
-              color={feedback?.status === 'correct' ? "success" : "primary"}
+              color={feedback?.status === 'correct' ? 'success' : 'primary'}
               onPress={handleCheck}
-              isDisabled={!answer || (isSubmitted && feedback?.status === 'correct')}
-              className="font-bold h-12 text-black data-[color=primary]:text-white"
+              isDisabled={
+                !answer || (isSubmitted && feedback?.status === 'correct')
+              }
+              className="h-12 font-bold text-black data-[color=primary]:text-white"
             >
               Check Answer
             </Button>
