@@ -7,6 +7,7 @@ import { FeedbackBanner } from './QuestionPanelComponents/FeedbackBanner';
 import { SolutionBox } from './QuestionPanelComponents/SolutionBox';
 import { useCourseContext } from '../context/CourseContext';
 import { QuestionTypes } from '@/lib/enum/question-types';
+import { answerCheckStrategyMap } from '@/lib/check-answer-strategy';
 
 export function QuestionsPanel() {
   const {
@@ -43,18 +44,16 @@ export function QuestionsPanel() {
 
   const handleCheck = () => {
     if (!answer || !currentQuestion) return;
-    let isCorrect = false;
+    
+    const strategy = answerCheckStrategyMap.get(currentQuestion.questionType);
+    if (!strategy) {
+      console.error(`No answer check strategy found for question type: ${currentQuestion.questionType}`);
+      return;
+    }
+
     const answerData = JSON.parse(currentQuestion.answer as string);
     const correctAnswer = answerData.correctAnswer;
-
-    if (currentQuestion.questionType === QuestionTypes.MULTIPLE_CHOICE) {
-      isCorrect = parseInt(answer) === correctAnswer;
-    } else if (currentQuestion.questionType === QuestionTypes.NUMERICAL) {
-      isCorrect = parseFloat(answer) === correctAnswer;
-    } else {
-      // Basic validation for others
-      isCorrect = answer.trim().length > 5;
-    }
+    const isCorrect = strategy.check(answer, correctAnswer);
 
     setIsSubmitted(true);
     setFeedback({
@@ -64,8 +63,6 @@ export function QuestionsPanel() {
   };
 
   if (!currentQuestion) return null;
-
-  const isCoding = currentQuestion.questionType === QuestionTypes.CODE_EXECUTION;
 
   return (
     <div className="flex h-full w-1/2 flex-col overflow-y-auto bg-[#181825] p-8">
@@ -102,21 +99,10 @@ export function QuestionsPanel() {
             value={answer}
             onChange={setAnswer}
             isDisabled={isSubmitted && feedback?.status === 'correct'}
+            onCheck={handleCheck}
           />
 
           <div className="flex flex-col gap-4">
-            {/* Standard "Check" button only for non-coding types */}
-            {!isCoding && (
-              <Button
-                color={feedback?.status === 'correct' ? 'success' : 'primary'}
-                onPress={handleCheck}
-                isDisabled={!answer || (isSubmitted && feedback?.status === 'correct')}
-                className="h-12 font-bold"
-              >
-                Check Answer
-              </Button>
-            )}
-
             <FeedbackBanner feedback={feedback} />
             {isSubmitted && <SolutionBox solution={currentQuestion.solution} />}
           </div>

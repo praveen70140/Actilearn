@@ -9,10 +9,11 @@ interface CodingTypeProps {
   question: QuestionType,
   value: string;
   onChange: (value: string) => void;
-  isDisabled: boolean
+  isDisabled: boolean;
+  onCheck: () => void;
 }
 
-export const CodingType = ({ question, value, onChange, isDisabled }: CodingTypeProps) => {
+export const CodingType = ({ question, value, onChange, isDisabled, onCheck }: CodingTypeProps) => {
   const argument = JSON.parse(question.argument as string || "{}");
   const testCases = argument.testCases || [];
 
@@ -106,13 +107,13 @@ export const CodingType = ({ question, value, onChange, isDisabled }: CodingType
           ))}
         </Accordion>
       </div>
-
-      <Button
-        isDisabled={isDisabled}
-        size="lg"
-        className="w-full bg-primary text-white font-bold h-14"
-      >
-        Submit Solution
+        <Button
+            onPress={onCheck}
+            isDisabled={isDisabled}
+            size="lg"
+            className="w-full bg-primary text-white font-bold h-14"
+        >
+            Submit Solution
       </Button>
     </div>
   );
