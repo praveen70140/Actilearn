@@ -1,5 +1,17 @@
-import { array, date, json, object, string, uuid, nativeEnum, z } from 'zod';
-import { QuestionTypes } from '../enum/question-types';
+import {
+  array,
+  date,
+  discriminatedUnion,
+  json,
+  object,
+  string,
+  uuid,
+} from 'zod';
+import {
+  questionTypeCodeExecutionSchema,
+  questionTypeMultipleChoiceSchema,
+  questionTypeNumericalSchema,
+} from './questions';
 
 const MIN_NAME_CHAR_COUNT = 10;
 const MIN_TAG_CHAR_COUNT = 3;
@@ -18,6 +30,7 @@ export const courseSchema = object({
       MIN_TAG_CHAR_COUNT,
       `Tag name must be at least ${MIN_TAG_CHAR_COUNT} characters long`,
     ),
+    { error: 'Tag array is required to be defined' },
   ),
   chapters: array(
     object({
@@ -28,22 +41,26 @@ export const courseSchema = object({
           theory: string('Lesson theory text is required'),
           questions: array(
             object({
-              questionType: nativeEnum(QuestionTypes, {
-                required_error: 'Question type is required',
-                invalid_type_error: 'Invalid question type',
-              }),
               questionText: string('Question text is required'),
-              // Arguments and answers are arbitrary fields defined as per question type
-              argument: json('Question arguments are required'),
-              answer: json('Answer is required'),
+              // Question body must be any one of the schemas of the
+              // predetermined question types
+              body: discriminatedUnion('type', [
+                questionTypeMultipleChoiceSchema,
+                questionTypeNumericalSchema,
+                questionTypeCodeExecutionSchema,
+                questionTypeCodeExecutionSchema,
+              ]),
               solution: json('Solution is required'),
             }),
             // Questions can be null but cannot be an empty array
+            { error: 'Questions are required to be defined' },
           )
             .min(1, 'At least one question is required to be defined')
             .nullable(),
         }),
+        { error: 'Lessons are required' },
       ).min(1, 'At least one lesson is required'),
     }),
+    { error: 'Chapters are required' },
   ).min(1, 'At least one chapter is required'),
 });
