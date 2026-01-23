@@ -3,14 +3,24 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Spinner } from '@heroui/react';
+import { z } from 'zod';
 
-// Import Data
-import { courseData } from './data';
+// Import Data & Schema
+import { courseData as rawCourseData } from './data';
+import { courseSchema } from '@/lib/zod/course';
 
 // Import Components
 import { CourseHeader } from './components/CourseHeader';
 import { TheoryPanel } from './components/TheoryPanel';
 import { QuestionsPanel } from './components/QuestionsPanel';
+
+// Validate and type the raw data
+const courseData = courseSchema.parse(rawCourseData);
+
+export type CourseType = z.infer<typeof courseSchema>;
+export type ChapterType = CourseType['chapters'][number];
+export type LessonType = ChapterType['lessons'][number];
+export type QuestionType = NonNullable<LessonType['questions']>[number];
 
 export default function CourseViewPage() {
   const router = useRouter();
@@ -23,7 +33,9 @@ export default function CourseViewPage() {
   // Derived Data
   const currentChapter = courseData.chapters[currentChapterIndex];
   const currentLesson = currentChapter.lessons[currentLessonIndex];
-  const currentQuestion = currentLesson.questions[currentQuestionIndex];
+  const currentQuestion = currentLesson.questions
+    ? currentLesson.questions[currentQuestionIndex]
+    : null;
 
   // --- LOGIC: LESSON NAVIGATION ---
   const handleNextLesson = () => {
@@ -51,7 +63,10 @@ export default function CourseViewPage() {
 
   // --- LOGIC: QUESTION NAVIGATION ---
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < currentLesson.questions.length - 1) {
+    if (
+      currentLesson.questions &&
+      currentQuestionIndex < currentLesson.questions.length - 1
+    ) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
@@ -62,69 +77,76 @@ export default function CourseViewPage() {
     }
   };
 
-  if (!courseData)
+  if (!courseData || !currentQuestion)
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4 bg-[#1e1e2e]">
-        {/* Corrected: color="accent" is the v3 semantic key */}
         <Spinner color="primary" size="lg" />
         <p className="animate-pulse text-sm font-medium text-[#b4befe]">
           Loading Payload...
         </p>
       </div>
     );
+
   return (
     <div className="min-h-screen overflow-hidden bg-[#1e1e2e] text-[#cdd6f4] selection:bg-[#f5e0dc] selection:text-[#1e1e2e]">
-          {/* 2. Global Navbar (Lesson/Chapter Control) */}
-          <CourseHeader
-            courseData={courseData}
-            currentChapter={currentChapter}
-            currentLesson={currentLesson}
-            onChapterChange={(key: any) => {
-              const idx = courseData.chapters.findIndex((c) => c.id === key);
-              if (idx !== -1) {
-                setCurrentChapterIndex(idx);
-                setCurrentLessonIndex(0);
-                setCurrentQuestionIndex(0);
-              }
-            }}
-            onLessonChange={(key: any) => {
-              const idx = currentChapter.lessons.findIndex((l) => l.id === key);
-              if (idx !== -1) {
-                setCurrentLessonIndex(idx);
-                setCurrentQuestionIndex(0);
-              }
-            }}
-            onPrevLesson={handlePrevLesson}
-            onNextLesson={handleNextLesson}
-            isPrevDisabled={
-              currentChapterIndex === 0 && currentLessonIndex === 0
-            }
-            isNextDisabled={
-              currentChapterIndex === courseData.chapters.length - 1 &&
-              currentLessonIndex === currentChapter.lessons.length - 1
-            }
-            onExit={() => router.push('/dashboard')}
-          />
+      <CourseHeader
+        courseData={courseData}
+        currentChapter={currentChapter}
+        currentLesson={currentLesson}
+        onChapterChange={(keys) => {
+          // keys is a Set
+          const selectedKey = Array.from(keys)[0];
+          const idx = courseData.chapters.findIndex(
+            (c) => c.name === selectedKey,
+          );
+          if (idx !== -1) {
+            setCurrentChapterIndex(idx);
+            setCurrentLessonIndex(0);
+            setCurrentQuestionIndex(0);
+          }
+        }}
+        onLessonChange={(keys) => {
+          const selectedKey = Array.from(keys)[0];
+          const idx = currentChapter.lessons.findIndex(
+            (l) => l.name === selectedKey,
+          );
+          if (idx !== -1) {
+            setCurrentLessonIndex(idx);
+            setCurrentQuestionIndex(0);
+          }
+        }}
+        onPrevLesson={handlePrevLesson}
+        onNextLesson={handleNextLesson}
+        isPrevLessonDisabled={
+          currentChapterIndex === 0 && currentLessonIndex === 0
+        }
+        isNextLessonDisabled={
+          currentChapterIndex === courseData.chapters.length - 1 &&
+          currentLessonIndex === currentChapter.lessons.length - 1
+        }
+        onExit={() => router.push('/dashboard')}
+      />
 
-          <main className="flex h-[calc(100vh-65px)]">
-            {/* 3. Left Panel (Markdown Content) */}
-            <TheoryPanel lesson={currentLesson} />
+      <main className="flex h-[calc(100vh-65px)]">
+        <TheoryPanel lesson={currentLesson} />
 
-            {/* 4. Right Panel (Question Logic) */}
-            <QuestionsPanel
-              lesson={currentLesson}
-              currentQuestion={currentQuestion}
-              currentQuestionIndex={currentQuestionIndex}
-              onQuestionChange={(key: any) => {
-                const idx = currentLesson.questions.findIndex(
-                  (q) => q.id === key,
-                );
-                if (idx !== -1) setCurrentQuestionIndex(idx);
-              }}
-              onPrevQuestion={handlePrevQuestion}
-              onNextQuestion={handleNextQuestion}
-            />
-          </main>
+        <QuestionsPanel
+          lesson={currentLesson}
+          currentQuestion={currentQuestion}
+          currentQuestionIndex={currentQuestionIndex}
+          onQuestionChange={(keys) => {
+            const selectedKey = Array.from(keys)[0];
+            if (currentLesson.questions) {
+              const idx = currentLesson.questions.findIndex(
+                (q, i) => i.toString() === selectedKey,
+              );
+              if (idx !== -1) setCurrentQuestionIndex(idx);
+            }
+          }}
+          onPrevQuestion={handlePrevQuestion}
+          onNextQuestion={handleNextQuestion}
+        />
+      </main>
     </div>
   );
 }

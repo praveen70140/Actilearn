@@ -10,6 +10,25 @@ import {
   NavbarItem,
 } from '@heroui/react';
 import { IconX, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import type {
+  CourseType,
+  ChapterType,
+  LessonType,
+} from '@/app/(course)/course/view/page';
+import { Key } from 'react';
+
+interface CourseHeaderProps {
+  courseData: CourseType;
+  currentChapter: ChapterType;
+  currentLesson: LessonType;
+  onChapterChange: (keys: Set<Key> | any) => void;
+  onLessonChange: (keys: Set<Key> | any) => void;
+  onPrevLesson: () => void;
+  onNextLesson: () => void;
+  isPrevLessonDisabled: boolean;
+  isNextLessonDisabled: boolean;
+  onExit: () => void;
+}
 
 export function CourseHeader({
   courseData,
@@ -22,7 +41,7 @@ export function CourseHeader({
   isPrevLessonDisabled,
   isNextLessonDisabled,
   onExit,
-}: any) {
+}: CourseHeaderProps) {
   return (
     <Navbar maxWidth="full" isBordered isBlurred={false}>
       <NavbarContent justify="start">
@@ -40,12 +59,12 @@ export function CourseHeader({
           <Select
             className="w-48"
             variant="flat"
-            selectedKeys={[currentChapter.id]}
+            selectedKeys={[currentChapter.name]}
             onSelectionChange={onChapterChange}
           >
-            {courseData.chapters.map((c: any) => (
-              <SelectItem key={c.id} id={c.id} textValue={c.title}>
-                {c.title}
+            {courseData.chapters.map((c: ChapterType) => (
+              <SelectItem key={c.name} id={c.name} textValue={c.name}>
+                {c.name}
               </SelectItem>
             ))}
           </Select>
@@ -54,12 +73,12 @@ export function CourseHeader({
         <NavbarItem>
           <Select
             className="w-48"
-            selectedKeys={[currentLesson.id]}
+            selectedKeys={[currentLesson.name]}
             onSelectionChange={onLessonChange}
           >
-            {currentChapter.lessons.map((l: any) => (
-              <SelectItem key={l.id} id={l.id} textValue={l.title}>
-                {l.title}
+            {currentChapter.lessons.map((l: LessonType) => (
+              <SelectItem key={l.name} id={l.name} textValue={l.name}>
+                {l.name}
               </SelectItem>
             ))}
           </Select>

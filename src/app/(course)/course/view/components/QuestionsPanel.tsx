@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Key } from 'react';
 import {
   Button,
   Card,
@@ -12,6 +12,17 @@ import { IconArrowLeft, IconArrowRight } from '@tabler/icons-react';
 import { QuestionRenderer } from './QuestionPanelComponents/QuestionRenderer';
 import { FeedbackBanner } from './QuestionPanelComponents/FeedbackBanner';
 import { SolutionBox } from './QuestionPanelComponents/SolutionBox';
+import { LessonType, QuestionType } from '@/app/(course)/course/view/page';
+import { QuestionTypes } from '@/lib/enum/question-types';
+
+interface QuestionsPanelProps {
+  lesson: LessonType;
+  currentQuestion: QuestionType;
+  currentQuestionIndex: number;
+  onQuestionChange: (keys: Set<Key> | any) => void;
+  onPrevQuestion: () => void;
+  onNextQuestion: () => void;
+}
 
 export function QuestionsPanel({
   lesson,
@@ -20,26 +31,33 @@ export function QuestionsPanel({
   onQuestionChange,
   onPrevQuestion,
   onNextQuestion,
-}: any) {
+}: QuestionsPanelProps) {
   const [answer, setAnswer] = useState<string>('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [feedback, setFeedback] = useState<any>(null);
+  const [feedback, setFeedback] = useState<{
+    status: 'correct' | 'incorrect';
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     setAnswer('');
     setIsSubmitted(false);
     setFeedback(null);
-  }, [currentQuestion.id]);
+  }, [currentQuestion.questionText]);
 
   const handleCheck = () => {
     if (!answer) return;
     let isCorrect = false;
-    if (currentQuestion.type === 'mcq')
-      isCorrect = parseInt(answer) === currentQuestion.correctAnswer;
-    else if (currentQuestion.type === 'numerical')
-      isCorrect = parseFloat(answer) === currentQuestion.correctAnswer;
-    else if (currentQuestion.type === 'subjective')
+    const correctAnswer = JSON.parse(currentQuestion.answer as string)
+      .correctAnswer;
+
+    if (currentQuestion.questionType === QuestionTypes.MULTIPLE_CHOICE) {
+      isCorrect = parseInt(answer) === correctAnswer;
+    } else if (currentQuestion.questionType === QuestionTypes.NUMERICAL) {
+      isCorrect = parseFloat(answer) === correctAnswer;
+    } else if (currentQuestion.questionType === QuestionTypes.OPEN_ENDED) {
       isCorrect = answer.trim().length > 10;
+    }
 
     setIsSubmitted(true);
     setFeedback({
@@ -57,8 +75,8 @@ export function QuestionsPanel({
           variant="bordered"
           size="sm"
           aria-label="Select Question"
-          selectedKeys={new Set([currentQuestion.id.toString()])}
-          onSelectionChange={(keys) => onQuestionChange(keys)}
+          selectedKeys={new Set([currentQuestionIndex.toString()])}
+          onSelectionChange={onQuestionChange}
           classNames={{
             trigger:
               'border-[#313244] bg-[#1e1e2e] data-[hover=true]:border-primary',
@@ -67,9 +85,9 @@ export function QuestionsPanel({
             listbox: 'bg-[#1e1e2e]',
           }}
         >
-          {lesson.questions.map((q: any, i: number) => (
+          {lesson.questions?.map((q, i) => (
             <SelectItem
-              key={q.id.toString()}
+              key={i.toString()}
               textValue={`Question ${i + 1}`}
               className="text-[#bac2de] data-[hover=true]:bg-[#2a2a3c] data-[hover=true]:text-white"
             >
@@ -94,7 +112,10 @@ export function QuestionsPanel({
             size="sm"
             variant="light"
             onPress={onNextQuestion}
-            isDisabled={currentQuestionIndex === lesson.questions.length - 1}
+            isDisabled={
+              !lesson.questions ||
+              currentQuestionIndex === lesson.questions.length - 1
+            }
             className="text-[#bac2de] hover:text-white"
           >
             <IconArrowRight size={16} />
@@ -112,7 +133,9 @@ export function QuestionsPanel({
           </h4>
         </CardHeader>
         <CardBody className="gap-8 px-4">
-          <p className="text-lg text-[#bac2de]">{currentQuestion.text}</p>
+          <p className="text-lg text-[#bac2de]">
+            {currentQuestion.questionText}
+          </p>
           <QuestionRenderer
             question={currentQuestion}
             value={answer}
@@ -131,7 +154,9 @@ export function QuestionsPanel({
               Check Answer
             </Button>
             <FeedbackBanner feedback={feedback} />
-            {isSubmitted && <SolutionBox solution={currentQuestion.solution} />}
+            {isSubmitted && (
+              <SolutionBox solution={currentQuestion.solution} />
+            )}
           </div>
         </CardBody>
       </Card>

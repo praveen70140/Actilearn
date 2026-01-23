@@ -1,5 +1,4 @@
-import { array, date, json, object, string, uuid } from 'zod';
-import { nativeEnum } from 'zod/v3';
+import { array, date, json, object, string, uuid, nativeEnum, z } from 'zod';
 import { QuestionTypes } from '../enum/question-types';
 
 const MIN_NAME_CHAR_COUNT = 10;

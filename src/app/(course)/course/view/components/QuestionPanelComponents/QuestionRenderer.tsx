@@ -2,12 +2,31 @@
 import { MCQType } from './MCQType';
 import { NumericalType } from './NumericalType';
 import { SubjectiveType } from './SubjectiveType';
-export const QuestionRenderer = ({ question, value, onChange, isDisabled }: any) => {
+import { QuestionType } from '@/app/(course)/course/view/page';
+import { QuestionTypes } from '@/lib/enum/question-types';
+
+interface QuestionRendererProps {
+  question: QuestionType;
+  value: string;
+  onChange: (value: string) => void;
+  isDisabled: boolean;
+}
+
+export const QuestionRenderer = ({
+  question,
+  value,
+  onChange,
+  isDisabled,
+}: QuestionRendererProps) => {
   const props = { question, value, onChange, isDisabled };
-  switch (question.type) {
-    case 'mcq': return <MCQType {...props} />;
-    case 'numerical': return <NumericalType {...props} />;
-    case 'subjective': return <SubjectiveType {...props} />;
-    default: return null;
+  switch (question.questionType) {
+    case QuestionTypes.MULTIPLE_CHOICE:
+      return <MCQType {...props} />;
+    case QuestionTypes.NUMERICAL:
+      return <NumericalType {...props} />;
+    case QuestionTypes.OPEN_ENDED:
+      return <SubjectiveType {...props} />;
+    default:
+      return null;
   }
 };
