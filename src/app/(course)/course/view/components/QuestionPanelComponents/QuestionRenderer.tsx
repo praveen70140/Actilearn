@@ -1,4 +1,5 @@
 'use client';
+import { CodingType } from './CodingType';
 import { MCQType } from './MCQType';
 import { NumericalType } from './NumericalType';
 import { SubjectiveType } from './SubjectiveType';
@@ -10,6 +11,7 @@ interface QuestionRendererProps {
   value: string;
   onChange: (value: string) => void;
   isDisabled: boolean;
+  onCheck?: () => void;
 }
 
 export const QuestionRenderer = ({
@@ -17,6 +19,7 @@ export const QuestionRenderer = ({
   value,
   onChange,
   isDisabled,
+  onCheck,
 }: QuestionRendererProps) => {
   const props = { question, value, onChange, isDisabled };
   switch (question.questionType) {
@@ -26,6 +29,8 @@ export const QuestionRenderer = ({
       return <NumericalType {...props} />;
     case QuestionTypes.OPEN_ENDED:
       return <SubjectiveType {...props} />;
+    case QuestionTypes.CODE_EXECUTION:
+      return <CodingType {...props} onCheck={onCheck || (() => {})} />;
     default:
       return null;
   }
