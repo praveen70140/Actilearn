@@ -3,6 +3,7 @@ import { nativeEnum } from 'zod/v3';
 import { QuestionTypes } from '../enum/question-types';
 
 const MIN_NAME_CHAR_COUNT = 10;
+const MIN_TAG_CHAR_COUNT = 3;
 
 export const courseSchema = object({
   id: uuid('Course ID is required'),
@@ -13,6 +14,12 @@ export const courseSchema = object({
   description: string('Course description is required'),
   //  Creator is not included as it will be inferred from the user account associated with the uploader
   created: date('Date is required'),
+  tags: array(
+    string('Tag name is required').min(
+      MIN_TAG_CHAR_COUNT,
+      `Tag name must be at least ${MIN_TAG_CHAR_COUNT} characters long`,
+    ),
+  ),
   chapters: array(
     object({
       name: string('Chapter name is required'),
