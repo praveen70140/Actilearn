@@ -11,6 +11,8 @@ import {
   Chip,
   CardBody,
   CardFooter,
+  CardHeader,
+  ScrollShadow,
 } from '@heroui/react';
 import { IconHelp, IconTrophy, IconFlame } from '@tabler/icons-react';
 
@@ -77,102 +79,102 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
-      {/* Main Content */}
-      <main className="mx-auto max-w-7xl py-12 sm:px-6 lg:px-8">
-        {/* Quick Actions */}
-        <div className="mb-12">
-          <h2 className="text-foreground mb-6 text-2xl font-bold">
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <NextLink href="/doubts">
-              <Card className="bg-surface hover:bg-default cursor-pointer transition-shadow duration-300">
-                <CardBody className="flex items-center gap-4">
-                  <IconHelp className="h-8 w-8 text-blue-500" />
-                  <div>
-                    <h3 className="text-foreground text-xl">Ask a Doubt</h3>
-                    <p className="text-muted">
-                      Get help from peers and instructors.
-                    </p>
-                  </div>
-                </CardBody>
-              </Card>
-            </NextLink>
-
-            <NextLink href="/compete">
-              <Card className="bg-surface hover:bg-default cursor-pointer transition-shadow duration-300">
-                <CardBody className="flex items-center gap-4">
-                  <IconTrophy className="h-8 w-8 text-yellow-500" />
-                  <div>
-                    <h3 className="text-foreground text-xl">Compete</h3>
-                    <p className="text-muted">
-                      Challenge yourself and climb the leaderboard.
-                    </p>
-                  </div>
-                </CardBody>
-              </Card>
-            </NextLink>
-
-            <NextLink href="/streak">
-              <Card className="bg-surface hover:bg-default cursor-pointer transition-shadow duration-300">
-                <CardBody className="flex items-center gap-4">
-                  <IconFlame className="h-8 w-8 text-red-500" />
-                  <div>
-                    <h3 className="text-foreground text-xl">
-                      View Your Streak
-                    </h3>
-                    <p className="text-muted">
-                      Stay consistent and watch your streak grow.
-                    </p>
-                  </div>
-                </CardBody>
-              </Card>
-            </NextLink>
-          </div>
-        </div>
-
-        {/* Course Catalog */}
-        <div className="space-y-12">
-          {courseCategories.map((category) => (
-            <div key={category.category}>
-              <h2 className="text-foreground mb-6 text-2xl font-bold">
-                {category.category}
-              </h2>
-              <div className="flex space-x-6 overflow-x-auto pb-4">
-                {category.courses.map((course) => (
-                  <div key={course.name} className="w-80 shrink-0">
-                    <Card className="bg-surface h-full">
-                      <CardBody>
-                        <h2 className="text-foreground text-xl">
-                          {course.name}
-                        </h2>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {course.tags.map((tag) => (
-                            <Chip
-                              key={tag}
-                              className="bg-default text-default-foreground"
-                            >
-                              {tag}
-                            </Chip>
-                          ))}
-                        </div>
-                      </CardBody>
-                      <CardFooter>
-                        <NextLink href="/course/view" className="w-full">
-                          <Button className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
-                            View Course
-                          </Button>
-                        </NextLink>
-                      </CardFooter>
-                    </Card>
-                  </div>
-                ))}
-              </div>
+    <main className="mx-auto max-w-7xl space-y-8 py-12 sm:px-6 lg:px-8">
+      {/* Quick Actions */}
+      <h2 className="text-secondary mb-6 text-4xl font-bold">Quick Actions</h2>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <Card
+          isPressable
+          onPress={() => router.push('/doubts')}
+          className="hover:bg-content2"
+        >
+          <CardBody className="flex items-center gap-4">
+            <IconHelp className="h-16 w-16 text-blue-500" />
+            <div>
+              <h3 className="text-2xl">Ask a Doubt</h3>
+              <p className="text-default-700">
+                Get help from peers and instructors.
+              </p>
             </div>
-          ))}
-        </div>
-      </main>
-    </div>
+          </CardBody>
+        </Card>
+
+        <Card
+          isPressable
+          onPress={() => router.push('/compete')}
+          className="hover:bg-content2"
+        >
+          <CardBody className="flex items-center gap-4">
+            <IconTrophy className="h-16 w-16 text-yellow-500" />
+            <div>
+              <h3 className="text-2xl">Compete</h3>
+              <p className="text-default-700">
+                Challenge yourself and climb the leaderboard.
+              </p>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card
+          isPressable
+          onPress={() => router.push('/streak')}
+          className="hover:bg-content2"
+        >
+          <CardBody className="flex items-center gap-4">
+            <IconFlame className="h-16 w-16 text-red-500" />
+            <div>
+              <h3 className="text-2xl">View Your Streak</h3>
+              <p className="text-default-700">
+                Stay consistent and watch your streak grow.
+              </p>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
+
+      <h2 className="text-secondary mb-6 text-4xl font-bold">
+        Discover Courses
+      </h2>
+      {/* Course Catalog */}
+      <div className="space-y-12">
+        {courseCategories.map((category) => (
+          <div key={category.category}>
+            <h2 className="text-foreground mb-6 text-2xl font-bold">
+              {category.category}
+            </h2>
+            <ScrollShadow
+              orientation="horizontal"
+              className="flex space-x-6 p-2"
+            >
+              {category.courses.map((course) => (
+                <div key={course.name} className="w-80 shrink-0">
+                  <Card className="bg-background outline-content2 hover:bg-content1 outline-1 hover:outline-0">
+                    <CardHeader></CardHeader>
+                    <CardBody>
+                      <h2 className="text-xl">{course.name}</h2>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {course.tags.map((tag) => (
+                          <Chip key={tag} variant="bordered" color="secondary">
+                            {tag}
+                          </Chip>
+                        ))}
+                      </div>
+                    </CardBody>
+                    <CardFooter>
+                      <NextLink href="/course/view" className="w-full">
+                        <Button className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
+                          View Course
+                        </Button>
+                      </NextLink>
+                    </CardFooter>
+                  </Card>
+                </div>
+              ))}
+            </ScrollShadow>
+            <div className="flex space-x-6 overflow-x-auto pb-4"></div>
+          </div>
+        ))}
+      </div>
+    </main>
   );
 }
