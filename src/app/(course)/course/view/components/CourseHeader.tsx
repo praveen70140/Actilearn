@@ -1,52 +1,26 @@
 'use client';
-
-import {
-  Button,
-  Select,
-  Tooltip,
-  SelectItem,
-  Navbar,
-  NavbarContent,
-  NavbarItem,
-} from '@heroui/react';
+import { Button, Select, Tooltip, SelectItem, Navbar, NavbarContent, NavbarItem } from '@heroui/react';
 import { IconX, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
-import type {
-  CourseType,
-  ChapterType,
-  LessonType,
-} from '@/app/(course)/course/view/page';
-import { Key } from 'react';
+import { useCourseContext } from '../context/CourseContext';
 
-interface CourseHeaderProps {
-  courseData: CourseType;
-  currentChapter: ChapterType;
-  currentLesson: LessonType;
-  onChapterChange: (keys: Set<Key> | any) => void;
-  onLessonChange: (keys: Set<Key> | any) => void;
-  onPrevLesson: () => void;
-  onNextLesson: () => void;
-  isPrevLessonDisabled: boolean;
-  isNextLessonDisabled: boolean;
-  onExit: () => void;
-}
+export function CourseHeader({ onExit }: { onExit: () => void }) {
+  const {
+    courseData,
+    currentChapter,
+    currentLesson,
+    onChapterChange,
+    onLessonChange,
+    onPrevLesson,
+    onNextLesson,
+    isPrevLessonDisabled,
+    isNextLessonDisabled,
+  } = useCourseContext();
 
-export function CourseHeader({
-  courseData,
-  currentChapter,
-  currentLesson,
-  onChapterChange,
-  onLessonChange,
-  onPrevLesson,
-  onNextLesson,
-  isPrevLessonDisabled,
-  isNextLessonDisabled,
-  onExit,
-}: CourseHeaderProps) {
   return (
-    <Navbar maxWidth="full" isBordered isBlurred={false}>
+    <Navbar maxWidth="full" isBordered className="bg-[#1e1e2e] border-[#313244]">
       <NavbarContent justify="start">
         <NavbarItem>
-          <Tooltip color="danger" content="Abandon Course">
+          <Tooltip content="Exit Course">
             <Button isIconOnly color="danger" variant="flat" onPress={onExit}>
               <IconX size={20} stroke={3} />
             </Button>
@@ -54,55 +28,53 @@ export function CourseHeader({
         </NavbarItem>
       </NavbarContent>
 
-      <NavbarContent justify="center">
+      <NavbarContent justify="center" className="gap-4">
         <NavbarItem>
           <Select
-            className="w-48"
+            className="w-56"
             variant="flat"
-            selectedKeys={[currentChapter.name]}
+            aria-label="Chapter"
+            selectedKeys={currentChapter ? [currentChapter.name] : []}
             onSelectionChange={onChapterChange}
           >
-            {courseData.chapters.map((c: ChapterType) => (
-              <SelectItem key={c.name} id={c.name} textValue={c.name}>
-                {c.name}
-              </SelectItem>
+            {courseData.chapters.map((c) => (
+              <SelectItem key={c.name} textValue={c.name}>{c.name}</SelectItem>
             ))}
           </Select>
         </NavbarItem>
 
         <NavbarItem>
           <Select
-            className="w-48"
-            selectedKeys={[currentLesson.name]}
+            className="w-56"
+            variant="flat"
+            aria-label="Lesson"
+            selectedKeys={currentLesson ? [currentLesson.name] : []}
             onSelectionChange={onLessonChange}
           >
-            {currentChapter.lessons.map((l: LessonType) => (
-              <SelectItem key={l.name} id={l.name} textValue={l.name}>
-                {l.name}
-              </SelectItem>
+            {currentChapter.lessons.map((l) => (
+              <SelectItem key={l.name} textValue={l.name}>{l.name}</SelectItem>
             ))}
           </Select>
         </NavbarItem>
       </NavbarContent>
 
       <NavbarContent justify="end">
-        <NavbarItem>
+        <NavbarItem className="flex gap-2">
           <Button
             variant="bordered"
             onPress={onPrevLesson}
             isDisabled={isPrevLessonDisabled}
+            className="border-[#313244] text-white"
           >
-            <IconChevronLeft /> Previous
+            <IconChevronLeft size={18} /> Previous
           </Button>
-        </NavbarItem>
-        <NavbarItem>
           <Button
-            variant="solid"
             color="primary"
             onPress={onNextLesson}
             isDisabled={isNextLessonDisabled}
+            className="font-bold"
           >
-            Next Lesson <IconChevronRight />
+            Next Lesson <IconChevronRight size={18} />
           </Button>
         </NavbarItem>
       </NavbarContent>
