@@ -3,7 +3,7 @@
 import NextLink from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button,
   Card,
@@ -11,8 +11,18 @@ import {
   Chip,
   CardBody,
   CardFooter,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter
 } from '@heroui/react';
 import { IconHelp, IconTrophy, IconFlame } from '@tabler/icons-react';
+
+interface Course {
+  name: string;
+  tags: string[];
+}
 
 // Placeholder data for courses
 const courseCategories = [
@@ -59,6 +69,18 @@ const courseCategories = [
 export default function DashboardPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+
+  const handleViewCourse = (course: Course) => {
+    setSelectedCourse(course);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCourse(null);
+  };
 
   useEffect(() => {
     // Redirect to login if not authenticated
@@ -159,11 +181,12 @@ export default function DashboardPage() {
                         </div>
                       </CardBody>
                       <CardFooter>
-                        <NextLink href="/course/view" className="w-full">
-                          <Button className="bg-accent text-accent-foreground hover:bg-accent/90 w-full">
-                            View Course
-                          </Button>
-                        </NextLink>
+                        <Button
+                          onPress={() => handleViewCourse(course)}
+                          className="bg-accent text-accent-foreground hover:bg-accent/90 w-full"
+                        >
+                          View Course
+                        </Button>
                       </CardFooter>
                     </Card>
                   </div>
@@ -173,6 +196,32 @@ export default function DashboardPage() {
           ))}
         </div>
       </main>
+      {selectedCourse && (
+        <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+          <ModalContent>
+            <ModalHeader>Continue to Course?</ModalHeader>
+            <ModalBody>
+              <p>
+                You are about to view the course &quot;{selectedCourse.name}&quot;.
+              </p>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="light" onPress={handleCloseModal}>
+                Cancel
+              </Button>
+              <NextLink href="/course/view" passHref>
+                <Button
+                  color="primary"
+                  onPress={handleCloseModal}
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Continue
+                </Button>
+              </NextLink>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      )}
     </div>
   );
 }
