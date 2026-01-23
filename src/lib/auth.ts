@@ -1,12 +1,13 @@
 import { betterAuth } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { db } from '@/db'; // your drizzle instance
+import { mongodbAdapter } from 'better-auth/adapters/mongodb';
+import clientPromise from '@/lib/mongodb';
 import { nextCookies } from 'better-auth/next-js';
 
+const client = await clientPromise;
+const db = client.db();
+
 export const auth = betterAuth({
-  database: drizzleAdapter(db, {
-    provider: 'pg', // or "mysql", "sqlite"
-  }),
+  database: mongodbAdapter(db),
   emailAndPassword: {
     enabled: true,
   },
