@@ -1,4 +1,5 @@
 'use client';
+import { CodingType } from './CodingType';
 import { MCQType } from './MCQType';
 import { NumericalType } from './NumericalType';
 import { SubjectiveType } from './SubjectiveType';
@@ -26,6 +27,8 @@ export const QuestionRenderer = ({
       return <NumericalType {...props} />;
     case QuestionTypes.OPEN_ENDED:
       return <SubjectiveType {...props} />;
+    case QuestionTypes.CODE_EXECUTION:
+      return <CodingType {...props} />;
     default:
       return null;
   }

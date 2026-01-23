@@ -73,6 +73,23 @@ useEffect(() => {
                   'useMemo memoizes a computed value, while useCallback memoizes a function reference to prevent unnecessary re-creations.',
               }),
             },
+            {
+              questionType: QuestionTypes.CODE_EXECUTION,
+              questionText: 'Write a JavaScript function that takes two numbers and returns their sum. Your function should be named `addNumbers`.',
+              argument: JSON.stringify({
+                starterCode: 'function addNumbers(a, b) {\n  // Write your code here\n}',
+                testCases: [
+                  { input: '2,3', expectedOutput: '5' },
+                  { input: '10,20', expectedOutput: '30' },
+                ],
+              }),
+              answer: JSON.stringify({
+                correctAnswer: 'function addNumbers(a, b) { return a + b; }',
+              }),
+              solution: JSON.stringify({
+                explanation: 'The function should take two arguments and return their sum. For example, `addNumbers(2, 3)` should return `5`.',
+              }),
+            },
           ],
         },
         {

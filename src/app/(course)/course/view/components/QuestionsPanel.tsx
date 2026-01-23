@@ -25,9 +25,18 @@ export function QuestionsPanel() {
     message: string;
   } | null>(null);
 
-  // FIX: Use optional chaining to prevent crash if currentQuestion is null
+  // Initialize answer with starter code for coding questions
   useEffect(() => {
-    setAnswer('');
+    if (currentQuestion?.questionType === QuestionTypes.CODE_EXECUTION) {
+      try {
+        const arg = JSON.parse(currentQuestion.argument as string);
+        setAnswer(arg.starterCode || '');
+      } catch (e) {
+        setAnswer('');
+      }
+    } else {
+      setAnswer('');
+    }
     setIsSubmitted(false);
     setFeedback(null);
   }, [currentQuestion?.questionText, currentQuestionIndex]);
@@ -42,8 +51,9 @@ export function QuestionsPanel() {
       isCorrect = parseInt(answer) === correctAnswer;
     } else if (currentQuestion.questionType === QuestionTypes.NUMERICAL) {
       isCorrect = parseFloat(answer) === correctAnswer;
-    } else if (currentQuestion.questionType === QuestionTypes.OPEN_ENDED) {
-      isCorrect = answer.trim().length > 10;
+    } else {
+      // Basic validation for others
+      isCorrect = answer.trim().length > 5;
     }
 
     setIsSubmitted(true);
@@ -53,14 +63,9 @@ export function QuestionsPanel() {
     });
   };
 
-  if (!currentQuestion) {
-    return (
-      <div className="flex h-full w-1/2 flex-col items-center justify-center bg-[#181825] p-8 text-center">
-        <p className="text-lg text-[#9399b2]">This lesson has no assessment questions.</p>
-        <p className="text-sm text-[#585b70] mt-2">You can proceed to the next lesson using the header.</p>
-      </div>
-    );
-  }
+  if (!currentQuestion) return null;
+
+  const isCoding = currentQuestion.questionType === QuestionTypes.CODE_EXECUTION;
 
   return (
     <div className="flex h-full w-1/2 flex-col overflow-y-auto bg-[#181825] p-8">
@@ -69,13 +74,9 @@ export function QuestionsPanel() {
           className="w-48"
           variant="bordered"
           size="sm"
-          aria-label="Select Question"
           selectedKeys={new Set([currentQuestionIndex.toString()])}
           onSelectionChange={onQuestionChange}
-          classNames={{
-            trigger: 'border-[#313244] bg-[#1e1e2e]',
-            value: 'text-white font-medium',
-          }}
+          classNames={{ trigger: 'border-[#313244] bg-[#1e1e2e]', value: 'text-white' }}
         >
           {(currentLesson.questions || []).map((_, i) => (
             <SelectItem key={i.toString()} textValue={`Question ${i + 1}`}>
@@ -95,27 +96,27 @@ export function QuestionsPanel() {
       </div>
 
       <Card className="flex-1 border border-[#313244] bg-[#1e1e2e] p-6 shadow-2xl">
-        <CardHeader className="flex flex-col items-start px-4">
-          <p className="text-tiny font-bold text-[#585b70] uppercase">Question {currentQuestionIndex + 1}</p>
-          <h4 className="text-2xl font-bold text-white mt-1">Practice Task</h4>
-        </CardHeader>
         <CardBody className="gap-8 px-4">
-          <p className="text-lg text-[#bac2de]">{currentQuestion.questionText}</p>
           <QuestionRenderer
             question={currentQuestion}
             value={answer}
             onChange={setAnswer}
             isDisabled={isSubmitted && feedback?.status === 'correct'}
           />
+
           <div className="flex flex-col gap-4">
-            <Button
-              color={feedback?.status === 'correct' ? 'success' : 'primary'}
-              onPress={handleCheck}
-              isDisabled={!answer || (isSubmitted && feedback?.status === 'correct')}
-              className="h-12 font-bold"
-            >
-              Check Answer
-            </Button>
+            {/* Standard "Check" button only for non-coding types */}
+            {!isCoding && (
+              <Button
+                color={feedback?.status === 'correct' ? 'success' : 'primary'}
+                onPress={handleCheck}
+                isDisabled={!answer || (isSubmitted && feedback?.status === 'correct')}
+                className="h-12 font-bold"
+              >
+                Check Answer
+              </Button>
+            )}
+
             <FeedbackBanner feedback={feedback} />
             {isSubmitted && <SolutionBox solution={currentQuestion.solution} />}
           </div>
