@@ -20,7 +20,7 @@ export function TheoryPanel({ lesson }: any) {
     img: ({ src, alt, ...props }: any) => {
       const finalSrc = resolveStorageUrl(src);
       return (
-        <span className="block my-8 group">
+        <div className="block my-8 group">
           <div className="relative overflow-hidden rounded-xl border border-[#313244] bg-[#181825]">
             <img
               {...props}
@@ -31,7 +31,7 @@ export function TheoryPanel({ lesson }: any) {
             />
           </div>
           {alt && <span className="block text-center text-xs text-[#9399b2] mt-3">{alt}</span>}
-        </span>
+        </div>
       );
     },
 
