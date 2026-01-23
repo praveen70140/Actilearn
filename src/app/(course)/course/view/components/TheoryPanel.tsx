@@ -4,13 +4,10 @@ import { IconBook } from '@tabler/icons-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw'; // Allow HTML tags like <video>
-import type { LessonType } from '@/app/(course)/course/view/page';
+import { useCourseContext } from '../context/CourseContext';
 
-interface TheoryPanelProps {
-  lesson: LessonType | null;
-}
-
-export function TheoryPanel({ lesson }: TheoryPanelProps) {
+export function TheoryPanel() {
+  const { currentLesson: lesson } = useCourseContext();
   const STORAGE_BASE_URL =
     process.env.NEXT_PUBLIC_STORAGE_URL || 'http://localhost:9000/actilearn';
 
