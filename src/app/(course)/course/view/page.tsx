@@ -8,14 +8,12 @@ import { Spinner } from '@heroui/react';
 import { courseData } from './data';
 
 // Import Components
-import { PreCourseModal } from './components/PreCourseModal';
 import { CourseHeader } from './components/CourseHeader';
 import { TheoryPanel } from './components/TheoryPanel';
 import { QuestionsPanel } from './components/QuestionsPanel';
 
 export default function CourseViewPage() {
   const router = useRouter();
-  const [showModal, setShowModal] = useState(true);
 
   // --- NAVIGATION STATE ---
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -76,15 +74,6 @@ export default function CourseViewPage() {
     );
   return (
     <div className="min-h-screen overflow-hidden bg-[#1e1e2e] text-[#cdd6f4] selection:bg-[#f5e0dc] selection:text-[#1e1e2e]">
-      {/* 1. Modal for Entry */}
-      <PreCourseModal
-        isOpen={showModal}
-        onOpenChange={setShowModal}
-        courseTitle={courseData.title}
-      />
-
-      {!showModal && (
-        <>
           {/* 2. Global Navbar (Lesson/Chapter Control) */}
           <CourseHeader
             courseData={courseData}
@@ -136,8 +125,6 @@ export default function CourseViewPage() {
               onNextQuestion={handleNextQuestion}
             />
           </main>
-        </>
-      )}
     </div>
   );
 }
