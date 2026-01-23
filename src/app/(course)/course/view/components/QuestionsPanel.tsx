@@ -28,10 +28,9 @@ export function QuestionsPanel() {
 
   // Initialize answer with starter code for coding questions
   useEffect(() => {
-    if (currentQuestion?.questionType === QuestionTypes.CODE_EXECUTION) {
+    if (currentQuestion?.body.type === QuestionTypes.CODE_EXECUTION) {
       try {
-        const arg = JSON.parse(currentQuestion.argument as string);
-        setAnswer(arg.starterCode || '');
+        setAnswer(currentQuestion.body.arguments.initialCode || '');
       } catch (e) {
         setAnswer('');
       }
@@ -45,14 +44,13 @@ export function QuestionsPanel() {
   const handleCheck = () => {
     if (!answer || !currentQuestion) return;
     
-    const strategy = answerCheckStrategyMap.get(currentQuestion.questionType);
+    const strategy = answerCheckStrategyMap.get(currentQuestion.body.type);
     if (!strategy) {
-      console.error(`No answer check strategy found for question type: ${currentQuestion.questionType}`);
+      console.error(`No answer check strategy found for question type: ${currentQuestion.body.type}`);
       return;
     }
 
-    const answerData = JSON.parse(currentQuestion.answer as string);
-    const correctAnswer = answerData.correctAnswer;
+    const correctAnswer = currentQuestion.body.answer;
     const isCorrect = strategy.check(answer, correctAnswer);
 
     setIsSubmitted(true);

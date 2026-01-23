@@ -6,13 +6,13 @@ interface AnswerCheckStrategy {
 
 class MultipleChoiceStrategy implements AnswerCheckStrategy {
   check(answer: string, correctAnswer: any): boolean {
-    return parseInt(answer) === correctAnswer;
+    return parseInt(answer) === correctAnswer.correctIndex;
   }
 }
 
 class NumericalStrategy implements AnswerCheckStrategy {
   check(answer: string, correctAnswer: any): boolean {
-    return parseFloat(answer) === correctAnswer;
+    return parseFloat(answer) === correctAnswer.correctNumber;
   }
 }
 

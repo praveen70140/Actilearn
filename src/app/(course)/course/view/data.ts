@@ -1,6 +1,7 @@
 import { courseSchema } from '@/lib/zod/course';
 import { QuestionTypes } from '@/lib/enum/question-types';
 import { z } from 'zod';
+import { codeExecutionLanguages } from '@/lib/constants/code-execution-languages';
 
 export const courseData: z.infer<typeof courseSchema> = {
   id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // New, valid UUID
@@ -39,53 +40,63 @@ useEffect(() => {
           `,
           questions: [
             {
-              questionType: QuestionTypes.MULTIPLE_CHOICE,
               questionText: 'Which hook is used for side effects?',
-              argument: JSON.stringify({
-                options: ['useState', 'useEffect', 'useMemo', 'useRef'],
-              }),
-              answer: JSON.stringify({ correctAnswer: 1 }),
+              body: {
+                type: QuestionTypes.MULTIPLE_CHOICE,
+                arguments: {
+                  options: ['useState', 'useEffect', 'useMemo', 'useRef'],
+                },
+                answer: { correctIndex: 1 },
+              },
               solution: JSON.stringify({
                 explanation:
                   'useEffect is designed for side effects like data fetching, subscriptions, and manual DOM mutations.',
               }),
             },
             {
-              questionType: QuestionTypes.NUMERICAL,
               questionText:
                 'How many times will useEffect run if dependency array is empty?',
-              argument: JSON.stringify({}),
-              answer: JSON.stringify({ correctAnswer: 1 }),
+              body: {
+                type: QuestionTypes.NUMERICAL,
+                arguments: {
+                  precision: 0,
+                },
+                answer: { correctNumber: 1 },
+              },
               solution: JSON.stringify({
                 explanation:
                   'An empty dependency array makes the effect run once after the initial render.',
               }),
             },
             {
-              questionType: QuestionTypes.OPEN_ENDED,
               questionText: 'Explain the difference between useMemo and useCallback.',
-              argument: JSON.stringify({}),
-              answer: JSON.stringify({
-                keywords: ['memoizes', 'value', 'function'],
-              }),
+              body: {
+                type: QuestionTypes.OPEN_ENDED,
+                arguments: {
+                  characterCount: null,
+                },
+                answer: { evaluationPrompt: 'Explain the difference between useMemo and useCallback.' },
+              },
               solution: JSON.stringify({
                 explanation:
                   'useMemo memoizes a computed value, while useCallback memoizes a function reference to prevent unnecessary re-creations.',
               }),
             },
             {
-              questionType: QuestionTypes.CODE_EXECUTION,
               questionText: 'Write a JavaScript function that takes two numbers and returns their sum. Your function should be named `addNumbers`.',
-              argument: JSON.stringify({
-                starterCode: 'function addNumbers(a, b) {\n  // Write your code here\n}',
-                testCases: [
-                  { input: '2,3', expectedOutput: '5' },
-                  { input: '10,20', expectedOutput: '30' },
-                ],
-              }),
-              answer: JSON.stringify({
-                correctAnswer: 'function addNumbers(a, b) { return a + b; }',
-              }),
+              body: {
+                type: QuestionTypes.CODE_EXECUTION,
+                arguments: {
+                    languages: [codeExecutionLanguages.javascript.id],
+                    initialCode: 'function addNumbers(a, b) {\n  // Write your code here\n}',
+                },
+                answer: {
+                    testCases: [
+                        { input: '2,3', expectedOutput: '5' },
+                        { input: '10,20', expectedOutput: '30' },
+                    ],
+                },
+              },
               solution: JSON.stringify({
                 explanation: 'The function should take two arguments and return their sum. For example, `addNumbers(2, 3)` should return `5`.',
               }),
@@ -108,27 +119,33 @@ For global settings like **Theme** or **Auth**, the Context API avoids "prop dri
           `,
           questions: [
             {
-              questionType: QuestionTypes.MULTIPLE_CHOICE,
               questionText: 'Which problem does lifting state up solve?',
-              argument: JSON.stringify({
-                options: [
-                  'Code splitting',
-                  'Shared state between components',
-                  'Memory leaks',
-                  'Improving bundle size',
-                ],
-              }),
-              answer: JSON.stringify({ correctAnswer: 1 }),
+              body: {
+                type: QuestionTypes.MULTIPLE_CHOICE,
+                arguments: {
+                  options: [
+                    'Code splitting',
+                    'Shared state between components',
+                    'Memory leaks',
+                    'Improving bundle size',
+                  ],
+                },
+                answer: { correctIndex: 1 },
+              },
               solution: JSON.stringify({
                 explanation:
                   'Lifting state up allows multiple components to share and stay in sync with the same state.',
               }),
             },
             {
-              questionType: QuestionTypes.OPEN_ENDED,
               questionText: 'When would you choose Context API over Redux?',
-              argument: JSON.stringify({}),
-              answer: JSON.stringify({ keywords: ['low-frequency', 'global'] }),
+              body: {
+                type: QuestionTypes.OPEN_ENDED,
+                arguments: {
+                  characterCount: null,
+                },
+                answer: { evaluationPrompt: 'When would you choose Context API over Redux?' },
+              },
               solution: JSON.stringify({
                 explanation:
                   'Context API is suitable for low-frequency global state like themes or auth, while Redux fits complex, high-frequency updates.',
@@ -164,31 +181,41 @@ REST (Representational State Transfer) is an architectural style for providing s
           `,
           questions: [
             {
-              questionType: QuestionTypes.NUMERICAL,
               questionText: 'In standard HTTP, which port is used for HTTPS?',
-              argument: JSON.stringify({}),
-              answer: JSON.stringify({ correctAnswer: 443 }),
+              body: {
+                type: QuestionTypes.NUMERICAL,
+                arguments: {
+                  precision: 0,
+                },
+                answer: { correctNumber: 443 },
+              },
               solution: JSON.stringify({
                 explanation: 'Port 443 is the default port for HTTPS traffic.',
               }),
             },
             {
-              questionType: QuestionTypes.MULTIPLE_CHOICE,
               questionText: 'Which HTTP method is idempotent?',
-              argument: JSON.stringify({
-                options: ['POST', 'PATCH', 'PUT', 'CONNECT'],
-              }),
-              answer: JSON.stringify({ correctAnswer: 2 }),
+              body: {
+                type: QuestionTypes.MULTIPLE_CHOICE,
+                arguments: {
+                  options: ['POST', 'PATCH', 'PUT', 'CONNECT'],
+                },
+                answer: { correctIndex: 2 },
+              },
               solution: JSON.stringify({
                 explanation:
                   'PUT is idempotent because multiple identical requests result in the same state.',
               }),
             },
             {
-              questionType: QuestionTypes.OPEN_ENDED,
               questionText: 'What does statelessness mean in REST APIs?',
-              argument: JSON.stringify({}),
-              answer: JSON.stringify({ keywords: ['server', 'no client session'] }),
+              body: {
+                type: QuestionTypes.OPEN_ENDED,
+                arguments: {
+                  characterCount: null,
+                },
+                answer: { evaluationPrompt: 'What does statelessness mean in REST APIs?' },
+              },
               solution: JSON.stringify({
                 explanation:
                   'Statelessness means each request contains all information needed to process it, and the server stores no client session.',

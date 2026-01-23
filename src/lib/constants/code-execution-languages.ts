@@ -9,4 +9,9 @@ export const codeExecutionLanguages = {
     label: 'Python',
     name: 'python',
   },
+  javascript: {
+    id: 63,
+    label: 'JavaScript (Node.js)',
+    name: 'javascript',
+  },
 };

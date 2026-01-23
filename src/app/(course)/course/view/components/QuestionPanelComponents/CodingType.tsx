@@ -6,7 +6,7 @@ import React from "react";
 import { QuestionType } from "../../page";
 
 interface CodingTypeProps {
-  question: QuestionType,
+  question: any,
   value: string;
   onChange: (value: string) => void;
   isDisabled: boolean;
@@ -14,8 +14,7 @@ interface CodingTypeProps {
 }
 
 export const CodingType = ({ question, value, onChange, isDisabled, onCheck }: CodingTypeProps) => {
-  const argument = JSON.parse(question.argument as string || "{}");
-  const testCases = argument.testCases || [];
+  const testCases = question.body.answer.testCases || [];
 
   return (
     <div className="flex flex-col gap-6">

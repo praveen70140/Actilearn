@@ -15,7 +15,7 @@ export const MCQType = ({
   onChange,
   isDisabled,
 }: MCQTypeProps) => {
-  const { options } = JSON.parse(question.argument as string);
+  const { options } = question.body.arguments;
 
   return (
     <RadioGroup

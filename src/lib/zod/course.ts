@@ -11,6 +11,7 @@ import {
   questionTypeCodeExecutionSchema,
   questionTypeMultipleChoiceSchema,
   questionTypeNumericalSchema,
+  questionTypeOpenEndedSchema,
 } from './questions';
 
 const MIN_NAME_CHAR_COUNT = 10;
@@ -48,7 +49,7 @@ export const courseSchema = object({
                 questionTypeMultipleChoiceSchema,
                 questionTypeNumericalSchema,
                 questionTypeCodeExecutionSchema,
-                questionTypeCodeExecutionSchema,
+                questionTypeOpenEndedSchema,
               ]),
               solution: json('Solution is required'),
             }),

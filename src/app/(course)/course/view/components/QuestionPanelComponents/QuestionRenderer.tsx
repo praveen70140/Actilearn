@@ -22,7 +22,7 @@ export const QuestionRenderer = ({
   onCheck,
 }: QuestionRendererProps) => {
   const props = { question, value, onChange, isDisabled };
-  switch (question.questionType) {
+  switch (question.body.type) {
     case QuestionTypes.MULTIPLE_CHOICE:
       return <MCQType {...props} />;
     case QuestionTypes.NUMERICAL:
