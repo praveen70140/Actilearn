@@ -67,7 +67,7 @@ The simplest way to share state is to move it to the closest common ancestor.
 
 ### Context API
 For global settings like **Theme** or **Auth**, the Context API avoids "prop drilling."
-
+<video src="test.mp4" />
 > **Tip:** Don't put high-frequency updates in Context, as it can trigger re-renders across the entire tree.
           `,
           questions: [
