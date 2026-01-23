@@ -7,10 +7,8 @@ import {
   NavbarBrand,
   NavbarContent,
   NavbarItem,
-  PressEvent,
 } from '@heroui/react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 const DashboardNavbar = () => {
   const { data: session, isPending } = useSession();
@@ -28,7 +26,7 @@ const DashboardNavbar = () => {
   };
 
   return (
-    <Navbar className="border-b-secondary border-b-1" isBlurred={false}>
+    <Navbar isBordered isBlurred={false}>
       <NavbarBrand>
         <h1 className="text-primary text-xl font-bold">ActiLearn</h1>
         <NavbarContent justify="end">
