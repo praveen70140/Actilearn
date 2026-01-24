@@ -28,7 +28,9 @@ export const questionTypeMultipleChoiceSchema = questionTypeBaseSchema
   .extend({
     type: literal(QuestionTypes.MULTIPLE_CHOICE),
     arguments: object({
-      options: array(string(), { error: 'Options are required' }).min(
+      options: array(string('Option text is required'), {
+        error: 'Options are required',
+      }).min(
         MIN_OPTIONS_COUNT,
         `At least ${MIN_OPTIONS_COUNT} options are required`,
       ),
@@ -55,9 +57,12 @@ export const questionTypeNumericalSchema = questionTypeBaseSchema.extend({
 export const questionTypeCodeExecutionSchema = questionTypeBaseSchema.extend({
   type: literal(QuestionTypes.CODE_EXECUTION),
   arguments: object({
-    languages: array(number().int(), {
-      error: 'Programming languages are required',
-    })
+    languages: array(
+      number('Language is required').int('Language must be an integer ID'),
+      {
+        error: 'Programming languages are required',
+      },
+    )
       .min(1, 'At least one programming language is required')
       .refine(
         (data) => {
@@ -66,7 +71,7 @@ export const questionTypeCodeExecutionSchema = questionTypeBaseSchema.extend({
           ).map((e) => e.id);
           return data.every((val) => allowedLanguageIdList.includes(val));
         },
-        { error: 'Languages must be among valid' },
+        { error: 'Languages must be among valid language list' },
       ),
     initialCode: string()
       .min(1, 'Initial code must be described if defined')
