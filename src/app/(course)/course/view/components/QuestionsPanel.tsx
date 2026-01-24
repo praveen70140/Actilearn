@@ -56,47 +56,50 @@ export function QuestionsPanel() {
     const isCorrect = strategy.check(answer, correctAnswer);
 
     setIsSubmitted(true);
-    setFeedback({
-      status: isCorrect ? 'correct' : 'incorrect',
-      message: isCorrect ? 'Correct Answer!' : 'That is not quite right.',
-    });
+    setFeedback(null);
   };
 
   if (!currentQuestion) return null;
 
   return (
-    <div className="flex h-full w-1/2 flex-col overflow-y-auto bg-[#181825] p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <Select
-          className="w-48"
-          variant="bordered"
-          size="sm"
-          selectedKeys={new Set([currentQuestionIndex.toString()])}
-          onSelectionChange={onQuestionChange}
-          classNames={{
-            trigger: 'border-[#313244] bg-[#1e1e2e]',
-            value: 'text-white',
-          }}
-        >
-          {(currentLesson.questions || []).map((_, i) => (
-            <SelectItem key={i.toString()} textValue={`Question ${i + 1}`}>
-              Question {i + 1}
-            </SelectItem>
-          ))}
-        </Select>
+    <div className="bg-default-50 flex h-full w-1/2 flex-col overflow-y-auto p-8">
+      <Card className="bg-background border-content2 flex-1 border p-4 shadow-2xl">
+        <CardBody className="gap-4 px-4">
+          <div className="flex items-center justify-start space-x-2">
+            <Button
+              isIconOnly
+              size="lg"
+              variant="light"
+              onPress={onPrevQuestion}
+            >
+              <IconArrowLeft size={24} className="stroke-secondary" />
+            </Button>
+            <Select
+              className="w-48"
+              variant="underlined"
+              size="lg"
+              selectedKeys={new Set([currentQuestionIndex.toString()])}
+              onSelectionChange={onQuestionChange}
+              classNames={{ value: 'text-xl' }}
+            >
+              {(currentLesson.questions || []).map((_, i) => (
+                <SelectItem key={i.toString()} textValue={`Question ${i + 1}`}>
+                  Question {i + 1}
+                </SelectItem>
+              ))}
+            </Select>
+            <Button
+              isIconOnly
+              size="lg"
+              variant="light"
+              onPress={onNextQuestion}
+            >
+              <IconArrowRight size={24} className="stroke-secondary" />
+            </Button>
+          </div>
 
-        <div className="flex overflow-hidden rounded-lg border border-[#313244] bg-[#1e1e2e]">
-          <Button isIconOnly size="sm" variant="light" onPress={onPrevQuestion}>
-            <IconArrowLeft size={16} />
-          </Button>
-          <Button isIconOnly size="sm" variant="light" onPress={onNextQuestion}>
-            <IconArrowRight size={16} />
-          </Button>
-        </div>
-      </div>
+          <p className="leading-relaxed">{currentQuestion.questionText}</p>
 
-      <Card className="flex-1 border border-[#313244] bg-[#1e1e2e] p-6 shadow-2xl">
-        <CardBody className="gap-8 px-4">
           <QuestionRenderer
             question={currentQuestion}
             value={answer}
@@ -107,7 +110,13 @@ export function QuestionsPanel() {
 
           <div className="flex flex-col gap-4">
             <FeedbackBanner feedback={feedback} />
-            {isSubmitted && <SolutionBox solution={currentQuestion.solution} />}
+            <Button
+              size="lg"
+              className="bg-secondary text-secondary-foreground"
+            >
+              Submit Solution
+            </Button>
+            {<SolutionBox solution={currentQuestion.solution} />}
           </div>
         </CardBody>
       </Card>

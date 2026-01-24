@@ -94,7 +94,9 @@ export const useCourseNavigation = (courseData: CourseType) => {
 
   return {
     currentChapter,
+    currentChapterIndex,
     currentLesson,
+    currentLessonIndex,
     currentQuestion,
     currentQuestionIndex,
     onChapterChange: handleChapterChange,

@@ -198,22 +198,22 @@ export default heroui({
         background: '#1e1e2e',
         foreground: '#cdd6f4',
         content1: {
-          DEFAULT: '#313244',
+          DEFAULT: '#11111b',
           foreground: '#fff',
         },
         content2: {
-          DEFAULT: '#45475a',
+          DEFAULT: '#181825',
           foreground: '#fff',
         },
         content3: {
-          DEFAULT: '#3f3f46',
+          DEFAULT: '#45475a',
           foreground: '#fff',
         },
         content4: {
-          DEFAULT: '#7f849c',
-          foreground: '#000',
+          DEFAULT: '#585b70',
+          foreground: '#fff',
         },
-        focus: '#89b4fa',
+        focus: '#006FEE',
         overlay: '#6c7086',
       },
     },

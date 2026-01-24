@@ -25,12 +25,12 @@ export const MCQType = ({ question, value, onChange, isDisabled }: Props) => {
           value={idx.toString()}
           classNames={{
             base: cn(
-              'inline-flex m-0 bg-[#2a2a3c] hover:bg-[#313244] items-center justify-between',
+              'inline-flex m-0 bg-content1 hover:bg-content2 items-center justify-between',
               'flex-row-reverse cursor-pointer rounded-xl gap-4 p-4 border-2 border-transparent',
               'max-w-full w-full transition-all',
-              'data-[selected=true]:border-primary data-[selected=true]:bg-[#313244]',
+              'data-[selected=true]:border-secondary data-[selected=true]:bg-secondary-50',
             ),
-            label: 'text-[#bac2de] text-base',
+            label: 'text-foreground text-base',
           }}
         >
           {opt}

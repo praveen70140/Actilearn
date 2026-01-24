@@ -20,7 +20,7 @@ export const SubjectiveType = ({
     isDisabled={isDisabled}
     classNames={{
       inputWrapper:
-        'border-[#313244] bg-[#2a2a3c] data-[hover=true]:border-primary',
+        'border-content2 bg-content1 data-[hover=true]:border-secondary',
       input: 'text-base text-white min-h-[150px]',
     }}
   />

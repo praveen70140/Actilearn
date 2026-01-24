@@ -1,5 +1,13 @@
 'use client';
-import { Button, Select, Tooltip, SelectItem, Navbar, NavbarContent, NavbarItem } from '@heroui/react';
+import {
+  Button,
+  Select,
+  Tooltip,
+  SelectItem,
+  Navbar,
+  NavbarContent,
+  NavbarItem,
+} from '@heroui/react';
 import { IconX, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { useCourseContext } from '../context/CourseContext';
 
@@ -17,7 +25,7 @@ export function CourseHeader({ onExit }: { onExit: () => void }) {
   } = useCourseContext();
 
   return (
-    <Navbar maxWidth="full" isBordered className="bg-[#1e1e2e] border-[#313244]">
+    <Navbar maxWidth="full" isBordered classNames={{ base: 'bg-default-100' }}>
       <NavbarContent justify="start">
         <NavbarItem>
           <Tooltip content="Exit Course">
@@ -38,7 +46,9 @@ export function CourseHeader({ onExit }: { onExit: () => void }) {
             onSelectionChange={onChapterChange}
           >
             {courseData.chapters.map((c) => (
-              <SelectItem key={c.name} textValue={c.name}>{c.name}</SelectItem>
+              <SelectItem key={c.name} textValue={c.name}>
+                {c.name}
+              </SelectItem>
             ))}
           </Select>
         </NavbarItem>
@@ -52,7 +62,9 @@ export function CourseHeader({ onExit }: { onExit: () => void }) {
             onSelectionChange={onLessonChange}
           >
             {currentChapter.lessons.map((l) => (
-              <SelectItem key={l.name} textValue={l.name}>{l.name}</SelectItem>
+              <SelectItem key={l.name} textValue={l.name}>
+                {l.name}
+              </SelectItem>
             ))}
           </Select>
         </NavbarItem>
@@ -64,7 +76,6 @@ export function CourseHeader({ onExit }: { onExit: () => void }) {
             variant="bordered"
             onPress={onPrevLesson}
             isDisabled={isPrevLessonDisabled}
-            className="border-[#313244] text-white"
           >
             <IconChevronLeft size={18} /> Previous
           </Button>

@@ -17,8 +17,8 @@ export const NumericalType = ({ value, onChange, isDisabled }: Props) => (
     isDisabled={isDisabled}
     classNames={{
       inputWrapper:
-        'h-14 border-[#313244] bg-[#2a2a3c] data-[hover=true]:border-primary',
-      input: 'text-lg text-white',
+        'h-14 border-content2 bg-content1 data-[hover=true]:border-secondary',
+      input: 'text-base text-foreground',
     }}
   />
 );
