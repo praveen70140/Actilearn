@@ -1,21 +1,16 @@
-import {
-  array,
-  date,
-  discriminatedUnion,
-  json,
-  object,
-  string,
-  uuid,
-} from 'zod';
-import {
-  questionTypeCodeExecutionSchema,
-  questionTypeMultipleChoiceSchema,
-  questionTypeNumericalSchema,
-  questionTypeOpenEndedSchema,
-} from './questions';
+import { array, date, json, object, string, uuid } from 'zod';
+import { questionTypeAllSchema } from './questions';
 
 const MIN_NAME_CHAR_COUNT = 10;
 const MIN_TAG_CHAR_COUNT = 3;
+
+export const questionSchema = object({
+  questionText: string('Question text is required'),
+  // Question body must be any one of the schemas of the
+  // predetermined question types
+  body: questionTypeAllSchema,
+  solution: string('Solution is required'),
+});
 
 export const courseSchema = object({
   id: uuid('Course ID is required'),
@@ -41,18 +36,7 @@ export const courseSchema = object({
           name: string('Lesson name is required'),
           theory: string('Lesson theory text is required'),
           questions: array(
-            object({
-              questionText: string('Question text is required'),
-              // Question body must be any one of the schemas of the
-              // predetermined question types
-              body: discriminatedUnion('type', [
-                questionTypeMultipleChoiceSchema,
-                questionTypeNumericalSchema,
-                questionTypeCodeExecutionSchema,
-                questionTypeOpenEndedSchema,
-              ]),
-              solution: json('Solution is required'),
-            }),
+            questionSchema,
             // Questions can be null but cannot be an empty array
             { error: 'Questions are required to be defined' },
           )

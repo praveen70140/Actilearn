@@ -1,6 +1,15 @@
-import { array, literal, number, object, string } from 'zod';
+import {
+  array,
+  discriminatedUnion,
+  literal,
+  looseObject,
+  number,
+  object,
+  string,
+} from 'zod';
 import { QuestionTypes } from '../enum/question-types';
 import { codeExecutionLanguages } from '../constants/code-execution-languages';
+import { nativeEnum } from 'zod/v3';
 
 const MIN_OPTIONS_COUNT = 2;
 
@@ -9,23 +18,31 @@ const MIN_OPTIONS_COUNT = 2;
 // 'arguments' and 'answer' are composed of nested objects that are
 // defined as per nature of the corresponding question type
 
-export const questionTypeMultipleChoiceSchema = object({
-  type: literal(QuestionTypes.MULTIPLE_CHOICE),
-  arguments: object({
-    options: array(string(), { error: 'Options are required' }).min(
-      MIN_OPTIONS_COUNT,
-      `At least ${MIN_OPTIONS_COUNT} options are required`,
-    ),
-  }),
-  answer: object({ correctIndex: number('Correct index is required') }),
-}).refine(
-  (data) => data.arguments.options.at(data.answer.correctIndex) !== undefined,
-  {
-    error: 'Answer must be one of the options',
-  },
-);
+export const questionTypeBaseSchema = object({
+  type: nativeEnum(QuestionTypes),
+  arguments: looseObject({}),
+  answer: looseObject({}),
+});
 
-export const questionTypeNumericalSchema = object({
+export const questionTypeMultipleChoiceSchema = questionTypeBaseSchema
+  .extend({
+    type: literal(QuestionTypes.MULTIPLE_CHOICE),
+    arguments: object({
+      options: array(string(), { error: 'Options are required' }).min(
+        MIN_OPTIONS_COUNT,
+        `At least ${MIN_OPTIONS_COUNT} options are required`,
+      ),
+    }),
+    answer: object({ correctIndex: number('Correct index is required') }),
+  })
+  .refine(
+    (data) => data.arguments.options.at(data.answer.correctIndex) !== undefined,
+    {
+      error: 'Answer must be one of the options',
+    },
+  );
+
+export const questionTypeNumericalSchema = questionTypeBaseSchema.extend({
   type: literal(QuestionTypes.NUMERICAL),
   arguments: object({
     precision: number('Precision is required')
@@ -35,7 +52,7 @@ export const questionTypeNumericalSchema = object({
   answer: object({ correctNumber: number('Correct number is required') }),
 });
 
-export const questionTypeCodeExecutionSchema = object({
+export const questionTypeCodeExecutionSchema = questionTypeBaseSchema.extend({
   type: literal(QuestionTypes.CODE_EXECUTION),
   arguments: object({
     languages: array(number().int(), {
@@ -66,7 +83,7 @@ export const questionTypeCodeExecutionSchema = object({
   }),
 });
 
-export const questionTypeOpenEndedSchema = object({
+export const questionTypeOpenEndedSchema = questionTypeBaseSchema.extend({
   type: literal(QuestionTypes.OPEN_ENDED),
   arguments: object({
     characterCount: number()
@@ -75,3 +92,10 @@ export const questionTypeOpenEndedSchema = object({
   }),
   answer: object({ evaluationPrompt: string('Evaluation prompt is required') }),
 });
+
+export const questionTypeAllSchema = discriminatedUnion('type', [
+  questionTypeMultipleChoiceSchema,
+  questionTypeNumericalSchema,
+  questionTypeCodeExecutionSchema,
+  questionTypeOpenEndedSchema,
+]);

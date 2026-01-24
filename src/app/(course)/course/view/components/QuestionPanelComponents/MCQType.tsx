@@ -1,20 +1,15 @@
 'use client';
 import { RadioGroup, Radio, cn } from '@heroui/react';
-import { QuestionType } from '@/app/(course)/course/view/page';
+import { MultipleChoiceQuestion } from '../../page';
 
-interface MCQTypeProps {
-  question: QuestionType;
+interface Props {
+  question: MultipleChoiceQuestion;
   value: string;
   onChange: (value: string) => void;
   isDisabled: boolean;
 }
 
-export const MCQType = ({
-  question,
-  value,
-  onChange,
-  isDisabled,
-}: MCQTypeProps) => {
+export const MCQType = ({ question, value, onChange, isDisabled }: Props) => {
   const { options } = question.body.arguments;
 
   return (

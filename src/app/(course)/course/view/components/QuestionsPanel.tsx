@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Button, Card, CardHeader, CardBody, Select, SelectItem } from '@heroui/react';
+import { Button, Card, CardBody, Select, SelectItem } from '@heroui/react';
 import { IconArrowLeft, IconArrowRight } from '@tabler/icons-react';
 import { QuestionRenderer } from './QuestionPanelComponents/QuestionRenderer';
 import { FeedbackBanner } from './QuestionPanelComponents/FeedbackBanner';
@@ -43,10 +43,12 @@ export function QuestionsPanel() {
 
   const handleCheck = () => {
     if (!answer || !currentQuestion) return;
-    
+
     const strategy = answerCheckStrategyMap.get(currentQuestion.body.type);
     if (!strategy) {
-      console.error(`No answer check strategy found for question type: ${currentQuestion.body.type}`);
+      console.error(
+        `No answer check strategy found for question type: ${currentQuestion.body.type}`,
+      );
       return;
     }
 
@@ -71,7 +73,10 @@ export function QuestionsPanel() {
           size="sm"
           selectedKeys={new Set([currentQuestionIndex.toString()])}
           onSelectionChange={onQuestionChange}
-          classNames={{ trigger: 'border-[#313244] bg-[#1e1e2e]', value: 'text-white' }}
+          classNames={{
+            trigger: 'border-[#313244] bg-[#1e1e2e]',
+            value: 'text-white',
+          }}
         >
           {(currentLesson.questions || []).map((_, i) => (
             <SelectItem key={i.toString()} textValue={`Question ${i + 1}`}>

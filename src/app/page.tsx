@@ -5,7 +5,6 @@ import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import {
-  Alert,
   Button,
   Card,
   CardBody,

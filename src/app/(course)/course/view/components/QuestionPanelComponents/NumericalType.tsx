@@ -1,17 +1,13 @@
 'use client';
 import { Input } from '@heroui/react';
 
-interface NumericalTypeProps {
+interface Props {
   value: string;
   onChange: (value: string) => void;
   isDisabled: boolean;
 }
 
-export const NumericalType = ({
-  value,
-  onChange,
-  isDisabled,
-}: NumericalTypeProps) => (
+export const NumericalType = ({ value, onChange, isDisabled }: Props) => (
   <Input
     type="number"
     variant="bordered"

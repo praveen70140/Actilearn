@@ -1,29 +1,18 @@
 'use client';
-import { useState, useMemo, useCallback } from 'react';
+import { useState } from 'react';
 import { CourseType } from '../page';
-import { Key } from 'react';
 
 export const useCourseNavigation = (courseData: CourseType) => {
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
-  const currentChapter = useMemo(
-    () => courseData.chapters[currentChapterIndex],
-    [courseData, currentChapterIndex],
-  );
+  const currentChapter = courseData.chapters[currentChapterIndex];
+  const currentLesson = currentChapter.lessons[currentLessonIndex];
+  const currentQuestion =
+    currentLesson?.questions?.[currentQuestionIndex] ?? null;
 
-  const currentLesson = useMemo(
-    () => currentChapter.lessons[currentLessonIndex],
-    [currentChapter, currentLessonIndex],
-  );
-
-  const currentQuestion = useMemo(
-    () => currentLesson?.questions?.[currentQuestionIndex] ?? null,
-    [currentLesson, currentQuestionIndex],
-  );
-
-  const handleChapterChange = useCallback((keys: any) => {
+  const handleChapterChange = (keys: any) => {
     const selectedKey = Array.from(keys)[0] as string;
     const index = courseData.chapters.findIndex((c) => c.name === selectedKey);
     if (index !== -1) {
@@ -31,26 +20,28 @@ export const useCourseNavigation = (courseData: CourseType) => {
       setCurrentLessonIndex(0);
       setCurrentQuestionIndex(0);
     }
-  }, [courseData]);
+  };
 
-  const handleLessonChange = useCallback((keys: any) => {
+  const handleLessonChange = (keys: any) => {
     const selectedKey = Array.from(keys)[0] as string;
-    const index = currentChapter.lessons.findIndex((l) => l.name === selectedKey);
+    const index = currentChapter.lessons.findIndex(
+      (l) => l.name === selectedKey,
+    );
     if (index !== -1) {
       setCurrentLessonIndex(index);
       setCurrentQuestionIndex(0);
     }
-  }, [currentChapter]);
+  };
 
-  const handleQuestionChange = useCallback((keys: any) => {
+  const handleQuestionChange = (keys: any) => {
     const selectedKey = Array.from(keys)[0] as string;
     const index = parseInt(selectedKey);
     if (!isNaN(index)) {
       setCurrentQuestionIndex(index);
     }
-  }, []);
+  };
 
-  const handleNextLesson = useCallback(() => {
+  const handleNextLesson = () => {
     if (currentLessonIndex < currentChapter.lessons.length - 1) {
       setCurrentLessonIndex((prev) => prev + 1);
       setCurrentQuestionIndex(0);
@@ -59,47 +50,47 @@ export const useCourseNavigation = (courseData: CourseType) => {
       setCurrentLessonIndex(0);
       setCurrentQuestionIndex(0);
     }
-  }, [currentLessonIndex, currentChapterIndex, courseData, currentChapter]);
+  };
 
-  const handlePrevLesson = useCallback(() => {
+  const handlePrevLesson = () => {
     if (currentLessonIndex > 0) {
       setCurrentLessonIndex((prev) => prev - 1);
       setCurrentQuestionIndex(0);
     } else if (currentChapterIndex > 0) {
       const prevChapterIdx = currentChapterIndex - 1;
       setCurrentChapterIndex(prevChapterIdx);
-      setCurrentLessonIndex(courseData.chapters[prevChapterIdx].lessons.length - 1);
+      setCurrentLessonIndex(
+        courseData.chapters[prevChapterIdx].lessons.length - 1,
+      );
       setCurrentQuestionIndex(0);
     }
-  }, [currentLessonIndex, currentChapterIndex, courseData]);
+  };
 
-  const handleNextQuestion = useCallback(() => {
-    if (currentLesson.questions && currentQuestionIndex < currentLesson.questions.length - 1) {
+  const handleNextQuestion = () => {
+    if (
+      currentLesson.questions &&
+      currentQuestionIndex < currentLesson.questions.length - 1
+    ) {
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
       handleNextLesson();
     }
-  }, [currentQuestionIndex, currentLesson, handleNextLesson]);
+  };
 
-  const handlePrevQuestion = useCallback(() => {
+  const handlePrevQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex((prev) => prev - 1);
     } else {
       handlePrevLesson();
     }
-  }, [currentQuestionIndex, handlePrevLesson]);
+  };
 
-  const isNextLessonDisabled = useMemo(
-    () =>
-      currentChapterIndex === courseData.chapters.length - 1 &&
-      currentLessonIndex === currentChapter.lessons.length - 1,
-    [currentChapterIndex, currentLessonIndex, courseData, currentChapter],
-  );
+  const isNextLessonDisabled =
+    currentChapterIndex === courseData.chapters.length - 1 &&
+    currentLessonIndex === currentChapter.lessons.length - 1;
 
-  const isPrevLessonDisabled = useMemo(
-    () => currentChapterIndex === 0 && currentLessonIndex === 0,
-    [currentChapterIndex, currentLessonIndex],
-  );
+  const isPrevLessonDisabled =
+    currentChapterIndex === 0 && currentLessonIndex === 0;
 
   return {
     currentChapter,

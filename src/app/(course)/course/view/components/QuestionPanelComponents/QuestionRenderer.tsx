@@ -1,13 +1,15 @@
 'use client';
+import z from 'zod';
 import { CodingType } from './CodingType';
 import { MCQType } from './MCQType';
 import { NumericalType } from './NumericalType';
 import { SubjectiveType } from './SubjectiveType';
-import { QuestionType } from '@/app/(course)/course/view/page';
 import { QuestionTypes } from '@/lib/enum/question-types';
+import { questionSchema } from '@/lib/zod/course';
+import { CodeExecutionQuestion, MultipleChoiceQuestion } from '../../page';
 
 interface QuestionRendererProps {
-  question: QuestionType;
+  question: z.infer<typeof questionSchema>;
   value: string;
   onChange: (value: string) => void;
   isDisabled: boolean;
@@ -21,16 +23,20 @@ export const QuestionRenderer = ({
   isDisabled,
   onCheck,
 }: QuestionRendererProps) => {
-  const props = { question, value, onChange, isDisabled };
+  const props = { value, onChange, isDisabled };
   switch (question.body.type) {
     case QuestionTypes.MULTIPLE_CHOICE:
-      return <MCQType {...props} />;
+      return (
+        <MCQType {...props} question={question as MultipleChoiceQuestion} />
+      );
     case QuestionTypes.NUMERICAL:
       return <NumericalType {...props} />;
     case QuestionTypes.OPEN_ENDED:
       return <SubjectiveType {...props} />;
     case QuestionTypes.CODE_EXECUTION:
-      return <CodingType {...props} onCheck={onCheck || (() => {})} />;
+      return (
+        <CodingType {...props} question={question as CodeExecutionQuestion} />
+      );
     default:
       return null;
   }

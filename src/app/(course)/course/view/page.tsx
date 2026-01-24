@@ -2,19 +2,44 @@
 import { useRouter } from 'next/navigation';
 import { Spinner } from '@heroui/react';
 import { courseData as rawCourseData } from './data';
-import { courseSchema } from '@/lib/zod/course';
+import { courseSchema, questionSchema } from '@/lib/zod/course';
 import { CourseHeader } from './components/CourseHeader';
 import { TheoryPanel } from './components/TheoryPanel';
 import { QuestionsPanel } from './components/QuestionsPanel';
 import { CourseProvider, useCourseContext } from './context/CourseContext';
 import { z } from 'zod';
+import {
+  questionTypeCodeExecutionSchema,
+  questionTypeMultipleChoiceSchema,
+  questionTypeNumericalSchema,
+  questionTypeOpenEndedSchema,
+} from '@/lib/zod/questions';
 
 const courseData = courseSchema.parse(rawCourseData);
 
 export type CourseType = z.infer<typeof courseSchema>;
 export type ChapterType = CourseType['chapters'][number];
 export type LessonType = ChapterType['lessons'][number];
-export type QuestionType = NonNullable<LessonType['questions']>[number];
+
+const multipleChoiceQuestionSchema = questionSchema.extend({
+  body: questionTypeMultipleChoiceSchema,
+});
+const numericalQuestionSchema = questionSchema.extend({
+  body: questionTypeNumericalSchema,
+});
+const codeExecutionQuestionSchema = questionSchema.extend({
+  body: questionTypeCodeExecutionSchema,
+});
+const openEndedQuestionSchema = questionSchema.extend({
+  body: questionTypeOpenEndedSchema,
+});
+
+export type MultipleChoiceQuestion = z.infer<
+  typeof multipleChoiceQuestionSchema
+>;
+export type NumericalQuestion = z.infer<typeof numericalQuestionSchema>;
+export type CodeExecutionQuestion = z.infer<typeof codeExecutionQuestionSchema>;
+export type OpenEndedQuestion = z.infer<typeof openEndedQuestionSchema>;
 
 const CourseView = () => {
   const { currentChapter, currentLesson } = useCourseContext();
