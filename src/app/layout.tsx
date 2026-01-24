@@ -4,14 +4,19 @@ import './globals.css';
 import { Providers } from './providers';
 
 const glacialIndifferenceRegular = localFont({
-  src: '../../public/fonts/GlacialIndifference-Regular.otf',
+  src: [
+    {
+      path: '../../public/fonts/GlacialIndifference-Regular.otf',
+      style: 'regular',
+      weight: '400',
+    },
+    {
+      path: '../../public/fonts/GlacialIndifference-Bold.otf',
+      style: 'bold',
+      weight: '700',
+    },
+  ],
   variable: '--font-glacial-regular',
-  weight: '400',
-});
-const glacialIndifferenceBold = localFont({
-  src: '../../public/fonts/GlacialIndifference-Regular.otf',
-  variable: '--font-glacial-bold',
-  weight: '900',
 });
 
 export const metadata: Metadata = {
@@ -27,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${glacialIndifferenceRegular.className} ${glacialIndifferenceBold.className} bg-background text-foreground antialiased`}
+        className={`${glacialIndifferenceRegular.className} bg-background text-foreground antialiased`}
       >
         <Providers>{children}</Providers>{' '}
       </body>
