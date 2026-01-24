@@ -1,5 +1,6 @@
 'use client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { Spinner } from '@heroui/react';
 import { courseData as rawCourseData } from './data';
 import { courseSchema, questionSchema } from '@/lib/zod/course';
@@ -14,8 +15,9 @@ import {
   questionTypeNumericalSchema,
   questionTypeOpenEndedSchema,
 } from '@/lib/zod/questions';
+import { useAiCourse } from '@/context/AiCourseContext';
 
-const courseData = courseSchema.parse(rawCourseData);
+const staticCourseData = courseSchema.parse(rawCourseData);
 
 export type CourseType = z.infer<typeof courseSchema>;
 export type ChapterType = CourseType['chapters'][number];
@@ -42,10 +44,9 @@ export type CodeExecutionQuestion = z.infer<typeof codeExecutionQuestionSchema>;
 export type OpenEndedQuestion = z.infer<typeof openEndedQuestionSchema>;
 
 const CourseView = () => {
-  const { currentChapter, currentLesson } = useCourseContext();
+  const { courseData, currentChapter, currentLesson } = useCourseContext();
   const router = useRouter();
 
-  // FIX: Only check for courseData and core navigation objects
   if (!courseData || !currentChapter || !currentLesson) {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4 bg-[#1e1e2e]">
@@ -68,10 +69,44 @@ const CourseView = () => {
   );
 };
 
-export default function CourseViewPage() {
+const CourseViewPageContent = () => {
+  const searchParams = useSearchParams();
+  const isAiCourse = searchParams.get('ai') === 'true';
+  const { aiCourse } = useAiCourse();
+
+  const courseData = isAiCourse ? aiCourse : staticCourseData;
+
+  if (!courseData) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-[#1e1e2e]">
+        <Spinner color="primary" size="lg" />
+        <p className="animate-pulse text-sm font-medium text-[#b4befe]">
+          Loading Course...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <CourseProvider course={courseData}>
       <CourseView />
     </CourseProvider>
+  );
+};
+
+export default function CourseViewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen flex-col items-center justify-center gap-4 bg-[#1e1e2e]">
+          <Spinner color="primary" size="lg" />
+          <p className="animate-pulse text-sm font-medium text-[#b4befe]">
+            Loading...
+          </p>
+        </div>
+      }
+    >
+      <CourseViewPageContent />
+    </Suspense>
   );
 }

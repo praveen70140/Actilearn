@@ -48,10 +48,8 @@ useEffect(() => {
                 },
                 answer: { correctIndex: 1 },
               },
-              solution: JSON.stringify({
-                explanation:
-                  'useEffect is designed for side effects like data fetching, subscriptions, and manual DOM mutations.',
-              }),
+              solution:
+                'useEffect is designed for side effects like data fetching, subscriptions, and manual DOM mutations.',
             },
             {
               questionText:
@@ -63,43 +61,44 @@ useEffect(() => {
                 },
                 answer: { correctNumber: 1 },
               },
-              solution: JSON.stringify({
-                explanation:
-                  'An empty dependency array makes the effect run once after the initial render.',
-              }),
+              solution:
+                'An empty dependency array makes the effect run once after the initial render.',
             },
             {
-              questionText: 'Explain the difference between useMemo and useCallback.',
+              questionText:
+                'Explain the difference between useMemo and useCallback.',
               body: {
                 type: QuestionTypes.OPEN_ENDED,
                 arguments: {
                   characterCount: null,
                 },
-                answer: { evaluationPrompt: 'Explain the difference between useMemo and useCallback.' },
+                answer: {
+                  evaluationPrompt:
+                    'Explain the difference between useMemo and useCallback.',
+                },
               },
-              solution: JSON.stringify({
-                explanation:
-                  'useMemo memoizes a computed value, while useCallback memoizes a function reference to prevent unnecessary re-creations.',
-              }),
+              solution:
+                'useMemo memoizes a computed value, while useCallback memoizes a function reference to prevent unnecessary re-creations.',
             },
             {
-              questionText: 'Write a JavaScript function that takes two numbers and returns their sum. Your function should be named `addNumbers`.',
+              questionText:
+                'Write a JavaScript function that takes two numbers and returns their sum. Your function should be named `addNumbers`.',
               body: {
                 type: QuestionTypes.CODE_EXECUTION,
                 arguments: {
-                    languages: [codeExecutionLanguages.javascript.id],
-                    initialCode: 'function addNumbers(a, b) {\n  // Write your code here\n}',
+                  languages: [codeExecutionLanguages.javascript.id],
+                  initialCode:
+                    'function addNumbers(a, b) {\n  // Write your code here\n}',
                 },
                 answer: {
-                    testCases: [
-                        { input: '2,3', expectedOutput: '5' },
-                        { input: '10,20', expectedOutput: '30' },
-                    ],
+                  testCases: [
+                    { input: '2,3', expectedOutput: '5' },
+                    { input: '10,20', expectedOutput: '30' },
+                  ],
                 },
               },
-              solution: JSON.stringify({
-                explanation: 'The function should take two arguments and return their sum. For example, `addNumbers(2, 3)` should return `5`.',
-              }),
+              solution:
+                'The function should take two arguments and return their sum. For example, `addNumbers(2, 3)` should return `5`.',
             },
           ],
         },
@@ -132,10 +131,8 @@ For global settings like **Theme** or **Auth**, the Context API avoids "prop dri
                 },
                 answer: { correctIndex: 1 },
               },
-              solution: JSON.stringify({
-                explanation:
-                  'Lifting state up allows multiple components to share and stay in sync with the same state.',
-              }),
+              solution:
+                'Lifting state up allows multiple components to share and stay in sync with the same state.',
             },
             {
               questionText: 'When would you choose Context API over Redux?',
@@ -144,12 +141,13 @@ For global settings like **Theme** or **Auth**, the Context API avoids "prop dri
                 arguments: {
                   characterCount: null,
                 },
-                answer: { evaluationPrompt: 'When would you choose Context API over Redux?' },
+                answer: {
+                  evaluationPrompt:
+                    'When would you choose Context API over Redux?',
+                },
               },
-              solution: JSON.stringify({
-                explanation:
-                  'Context API is suitable for low-frequency global state like themes or auth, while Redux fits complex, high-frequency updates.',
-              }),
+              solution:
+                'Context API is suitable for low-frequency global state like themes or auth, while Redux fits complex, high-frequency updates.',
             },
           ],
         },
@@ -189,9 +187,7 @@ REST (Representational State Transfer) is an architectural style for providing s
                 },
                 answer: { correctNumber: 443 },
               },
-              solution: JSON.stringify({
-                explanation: 'Port 443 is the default port for HTTPS traffic.',
-              }),
+              solution: 'Port 443 is the default port for HTTPS traffic.',
             },
             {
               questionText: 'Which HTTP method is idempotent?',
@@ -202,10 +198,8 @@ REST (Representational State Transfer) is an architectural style for providing s
                 },
                 answer: { correctIndex: 2 },
               },
-              solution: JSON.stringify({
-                explanation:
-                  'PUT is idempotent because multiple identical requests result in the same state.',
-              }),
+              solution:
+                'PUT is idempotent because multiple identical requests result in the same state.',
             },
             {
               questionText: 'What does statelessness mean in REST APIs?',
@@ -214,12 +208,13 @@ REST (Representational State Transfer) is an architectural style for providing s
                 arguments: {
                   characterCount: null,
                 },
-                answer: { evaluationPrompt: 'What does statelessness mean in REST APIs?' },
+                answer: {
+                  evaluationPrompt:
+                    'What does statelessness mean in REST APIs?',
+                },
               },
-              solution: JSON.stringify({
-                explanation:
-                  'Statelessness means each request contains all information needed to process it, and the server stores no client session.',
-              }),
+              solution:
+                'Statelessness means each request contains all information needed to process it, and the server stores no client session.',
             },
           ],
         },
@@ -227,4 +222,3 @@ REST (Representational State Transfer) is an architectural style for providing s
     },
   ],
 };
-

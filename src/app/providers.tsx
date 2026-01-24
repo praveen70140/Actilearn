@@ -2,6 +2,7 @@
 
 import { HeroUIProvider, ToastProvider } from '@heroui/react';
 import { useRouter } from 'next/navigation';
+import { AiCourseProvider } from '@/context/AiCourseContext';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -9,7 +10,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <HeroUIProvider locale="en-IN" navigate={router.push}>
       <ToastProvider toastOffset={50} placement="top-center" />
-      {children}
+      <AiCourseProvider>{children}</AiCourseProvider>
     </HeroUIProvider>
   );
 }

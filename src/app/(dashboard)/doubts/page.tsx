@@ -4,65 +4,55 @@ import {
   Textarea,
   Button,
   Card,
-  Spinner,
   Skeleton,
   CardHeader,
   CardBody,
   CardFooter,
 } from "@heroui/react";
-import { IconPlayerPlay, IconSend, IconSparkles } from "@tabler/icons-react";
-import { z } from "zod";
-import { courseSchema } from "@/lib/zod/course";
-import { QuestionTypes } from "@/lib/enum/question-types";
-
-const mockCourse: z.infer<typeof courseSchema> = {
-  id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  name: "Generated Course Title",
-  description: "This is a sample course description generated based on your doubt.",
-  created: new Date(),
-  tags: ["sample", "course"],
-  chapters: [
-    {
-      name: "Chapter 1",
-      lessons: [
-        {
-          name: "Lesson 1",
-          theory: "This is the theory for lesson 1.",
-          questions: [
-            {
-              questionType: QuestionTypes.MULTIPLE_CHOICE,
-              questionText: "What is 2 + 2?",
-              argument: JSON.stringify({ options: ["3", "4", "5"] }),
-              answer: JSON.stringify({ answer: "4" }),
-              solution: JSON.stringify({ solution: "2 + 2 = 4" }),
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+import { IconSend, IconSparkles } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
+import { useAiCourse } from "@/context/AiCourseContext";
 
 export default function DoubtsPage() {
   const [doubt, setDoubt] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [course, setCourse] = useState<z.infer<typeof courseSchema> | null>(
-    null
-  );
+  const { aiCourse, setAiCourse, isLoading, setIsLoading } = useAiCourse();
+  const router = useRouter();
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!doubt) return;
     setIsLoading(true);
-    setCourse(null);
-    setTimeout(() => {
-      setCourse(mockCourse);
+    setAiCourse(null);
+
+    try {
+      const response = await fetch("/api/generate-course", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ doubt }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate course");
+      }
+
+      const courseData = await response.json();
+      setAiCourse(courseData);
+    } catch (error) {
+      console.error(error);
+      // You might want to show an error message to the user
+    } finally {
       setIsLoading(false);
-    }, 2000);
-  }, [doubt]);
+    }
+  }, [doubt, setAiCourse, setIsLoading]);
 
   const handleReset = () => {
     setDoubt("");
-    setCourse(null);
+    setAiCourse(null);
+  };
+
+  const handleAttempt = () => {
+    router.push("/course/view?ai=true");
   };
 
   return (
@@ -73,7 +63,7 @@ export default function DoubtsPage() {
       </div>
 
       <div className="relative z-10 w-full max-w-4xl">
-        {!course && !isLoading && (
+        {!aiCourse && !isLoading && (
           <div className="flex flex-col items-center text-center">
             <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mb-4 flex items-center gap-2">
               <IconSparkles size={48} />
@@ -87,7 +77,7 @@ export default function DoubtsPage() {
               variant="bordered"
               placeholder="Tell us what your doubt is..."
               value={doubt}
-              onChange={(e) => setDoubt(e.target.value)}
+              onValueChange={setDoubt}
               className="mb-4 min-h-[150px]"
             />
             <Button
@@ -120,21 +110,26 @@ export default function DoubtsPage() {
           </Card>
         )}
 
-        {course && (
+        {aiCourse && (
           <Card isBlurred shadow="lg" className="border border-white/10">
             <CardHeader className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-foreground">
-                {course.name}
+                {aiCourse.name}
               </h2>
               <Button variant="light" onClick={handleReset}>
                 Ask another doubt
               </Button>
             </CardHeader>
             <CardBody>
-              <p className="text-muted">{course.description}</p>
+              <p className="text-muted">{aiCourse.description}</p>
             </CardBody>
             <CardFooter className="flex justify-end">
-              <Button color="success" variant="shadow" size="lg">
+              <Button
+                color="success"
+                variant="shadow"
+                size="lg"
+                onPress={handleAttempt}
+              >
                 Attempt
               </Button>
             </CardFooter>
