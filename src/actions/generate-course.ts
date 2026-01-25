@@ -7,7 +7,7 @@ import { z } from 'zod';
 // --- CONFIGURATION ---
 // Set to true to use the mock response below and save tokens
 // Set to false to use the real Gemma-3-27b-it model
-const USE_MOCK_AI = true;
+const USE_MOCK_AI = false;
 // ---------------------
 
 export async function generateCourseFromDoubt(doubt: string) {
@@ -19,8 +19,6 @@ export async function generateCourseFromDoubt(doubt: string) {
 
     if (USE_MOCK_AI) {
       console.log('--- [MOCK] USING SAVED WORKING JSON RESPONSE ---');
-      // This is the working JSON you provided, stripped of system fields 
-      // so the enrichment logic (Step 6) can add fresh IDs/Dates.
       text = JSON.stringify({
         name: 'HTML Fundamentals',
         description: 'A concise introduction to the core concepts of HTML for web development.',
@@ -62,47 +60,95 @@ export async function generateCourseFromDoubt(doubt: string) {
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: 'models/gemma-3-27b-it' });
 
-      // THE EXACT PREVIOUS PROMPT (As requested: No changes)
+      // UPDATED PROMPT: Removed "Exactly 1" limits, added multiple items to example structure
       const prompt = `
-      You are an expert tutor. Provide a MINI-COURSE in JSON format to solve this doubt: "${doubt}".
+You are an expert tutor. Provide a comprehensive, high-quality course in JSON format to solve this doubt: "${doubt}".
 
-      STRICT CONSTRAINTS:
-      1. Create EXACTLY 1 Chapter.
-      2. Create EXACTLY 1 Lesson inside that chapter.
-      3. Create EXACTLY 1 Multiple Choice Question (Type 0) inside that lesson.
-      4. Output ONLY the JSON object. No explanations, no markdown blocks.
+STRICT CONTENT RULES:
+1. Create a logical progression of at least 2 chapters.
+2. Provide at least 2 lessons per chapter.
+3. Provide at least 2 questions per lesson.
+4. "name" must be a string longer than 10 characters.
+5. "tags" must be an array of strings, each longer than 3 characters.
 
-      REQUIRED JSON STRUCTURE:
-      {
-        "name": "Course Title (min 10 chars)",
-        "description": "Short summary",
-        "tags": ["tag1", "tag2", "tag3"],
-        "chapters": [
-          {
-            "name": "Chapter Title",
-            "lessons": [
-              {
-                "name": "Lesson Title",
-                "theory": "Detailed explanation using markdown formatting",
-                "questions": [
-                  {
-                    "questionText": "The question content",
-                    "solution": "Why the correct answer is right",
-                    "body": {
-                      "type": 0,
-                      "arguments": { "options": ["Option A", "Option B", "Option C", "Option D"] },
-                      "answer": { "correctIndex": 0 }
-                    }
-                  }
-                ]
+STRICT QUESTION TYPE RULES (Crucial for Zod Schema Validation):
+
+- TYPE 0 (Multiple Choice):
+  "arguments": { "options": ["Option 1", "Option 2", "Option 3", "Option 4"] }
+  "answer": { "correctIndex": number }
+
+- TYPE 1 (Numerical):
+  ONLY use this for answers that are pure numbers (years, math, counts).
+  "arguments": { "precision": 0 }
+  "answer": { "correctNumber": number }
+
+- TYPE 3 (Open Ended):
+  Use this for "Explain" or "What is" questions requiring a text response.
+  "arguments": { "characterCount": 500 }
+  "answer": { "evaluationPrompt": "Detailed criteria for grading this answer" }
+
+OUTPUT INSTRUCTION:
+Return ONLY a valid JSON object. Do not include markdown formatting like \`\`\`json. Do not include any text before or after the JSON.
+
+REQUIRED JSON STRUCTURE EXAMPLE:
+{
+  "name": "Title of the Course",
+  "description": "Comprehensive description of the course.",
+  "tags": ["education", "learning", "topic"],
+  "chapters": [
+    {
+      "name": "Chapter 1: Foundations",
+      "lessons": [
+        {
+          "name": "Lesson 1.1: Basic Concepts",
+          "theory": "Detailed markdown text...",
+          "questions": [
+            {
+              "questionText": "Multiple Choice Example?",
+              "solution": "Explanation...",
+              "body": {
+                "type": 0,
+                "arguments": { "options": ["A", "B", "C"] },
+                "answer": { "correctIndex": 0 }
               }
-            ]
-          }
-        ]
-      }
-    `;
-
-      console.log('--- [2] SENDING PROMPT TO GEMMA-3 ---');
+            },
+            {
+              "questionText": "In what year did this event happen?",
+              "solution": "It happened in 2024.",
+              "body": {
+                "type": 1,
+                "arguments": { "precision": 0 },
+                "answer": { "correctNumber": 2024 }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Chapter 2: Advanced Analysis",
+      "lessons": [
+        {
+          "name": "Lesson 2.1: Deep Dive",
+          "theory": "Advanced markdown text...",
+          "questions": [
+            {
+              "questionText": "Explain the significance of this topic.",
+              "solution": "This is significant because...",
+              "body": {
+                "type": 3,
+                "arguments": { "characterCount": 300 },
+                "answer": { "evaluationPrompt": "Check for mention of key impacts." }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+`;
+      `; `; console.log('--- [2] SENDING PROMPT TO GEMMA-3 ---');
       const result = await model.generateContent(prompt);
       const response = await result.response;
       text = response.text();
