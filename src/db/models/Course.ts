@@ -38,14 +38,9 @@ const questionMongoSchema = new Schema<IQuestionMongoSchema>({
   questionText: { type: Schema.Types.String, required: true },
   solution: { type: Schema.Types.String, required: true },
   body: {
-    type: {
-      type: {
-        type: Schema.Types.Number,
-        required: true,
-      },
-      arguments: { type: Schema.Types.Mixed, required: true },
-      answer: { type: Schema.Types.Mixed, required: true },
-    },
+    type: { type: Schema.Types.Number, required: true },
+    arguments: { type: Schema.Types.Mixed },
+    answer: { type: Schema.Types.Mixed, required: true },
   },
 });
 

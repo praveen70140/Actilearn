@@ -3,7 +3,7 @@ import { QuestionTypes } from '@/lib/enum/question-types';
 import { z } from 'zod';
 import { codeExecutionLanguages } from '@/lib/constants/code-execution-languages';
 
-export const courseData: z.infer<typeof courseSchema> = {
+export const seedCourseData: z.infer<typeof courseSchema> = {
   id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // New, valid UUID
   name: 'Fullstack Mastery: From Zero to Hero',
   description:
