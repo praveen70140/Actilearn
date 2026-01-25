@@ -40,6 +40,7 @@ export default function LoginPage() {
         .then((data) => {
           if (data && data.success) {
             setSuccess(data.success);
+            router.push('/dashboard');
           }
           if (data && data.error) {
             setError(data.error);

@@ -66,7 +66,7 @@ export const questionResponseSchema = z.object({
 
 export const responseDocumentSchema = z.object({
   _id: z.preprocess((val) => val?.toString(), z.string()),
-  user: z.preprocess((val) => val?.toString(), z.string().uuid('User ID is required')),
+  user: z.preprocess((val) => val?.toString(), z.string()),
   course: z.preprocess((val) => val?.toString(), z.string()),
   chapters: z.array(
     z.object({
