@@ -3,222 +3,298 @@ import { QuestionTypes } from '@/lib/enum/question-types';
 import { z } from 'zod';
 import { codeExecutionLanguages } from '@/lib/constants/code-execution-languages';
 
-export const seedCourseData: z.infer<typeof courseSchema> = {
-  id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // New, valid UUID
-  name: 'Fullstack Mastery: From Zero to Hero',
-  description:
-    'A comprehensive course that covers everything you need to know to become a fullstack developer, from frontend fundamentals to backend architecture and database management.',
-  created: new Date('2024-01-01T00:00:00Z'),
-  tags: ['fullstack', 'react', 'typescript', 'backend'],
-  chapters: [
-    {
-      name: 'Frontend Core',
-      lessons: [
-        {
-          name: 'React Hooks Deep Dive',
-          theory: `
-# Mastering React Hooks
-Hooks allow you to use state and other React features without writing a class. They provide a more direct API to the React concepts you already know.
-
-### The Component Lifecycle
-Understanding when hooks fire is critical for performance and bug prevention.
-
-![React Lifecycle Diagram](test.png)
-
-### Common Hooks
-1. **useState**: For local state management.
-2. **useEffect**: For side effects (API calls, subscriptions).
-3. **useContext**: For consuming context without nesting.
-
-\`\`\`javascript
-const [count, setCount] = useState(0);
-
-useEffect(() => {
-  console.log("Component mounted");
-}, []);
-\`\`\`
-          `,
-          questions: [
-            {
-              questionText: 'Which hook is used for side effects?',
-              body: {
-                type: QuestionTypes.MULTIPLE_CHOICE,
-                arguments: {
-                  options: ['useState', 'useEffect', 'useMemo', 'useRef'],
+export const seedCourseData: z.infer<typeof courseSchema>[] = [
+  {
+    id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+    name: 'Fullstack Mastery: From Zero to Hero',
+    description: 'A comprehensive course covering frontend fundamentals to backend architecture.',
+    created: new Date('2024-01-01T00:00:00Z'),
+    tags: ['fullstack', 'react', 'typescript', 'backend'],
+    chapters: [
+      {
+        name: 'Frontend Core',
+        lessons: [
+          {
+            name: 'React Hooks Deep Dive',
+            theory: '# Mastering React Hooks\nHooks allow you to use state without classes.',
+            questions: [
+              {
+                questionText: 'Which hook is used for side effects?',
+                body: {
+                  type: QuestionTypes.MULTIPLE_CHOICE,
+                  arguments: { options: ['useState', 'useEffect', 'useMemo', 'useRef'] },
+                  answer: { correctIndex: 1 },
                 },
-                answer: { correctIndex: 1 },
+                solution: 'useEffect is designed for side effects.',
               },
-              solution:
-                'useEffect is designed for side effects like data fetching, subscriptions, and manual DOM mutations.',
-            },
-            {
-              questionText:
-                'How many times will useEffect run if dependency array is empty?',
-              body: {
-                type: QuestionTypes.NUMERICAL,
-                arguments: {
-                  precision: 0,
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '123e4567-e89b-12d3-a456-426614174000',
+    name: 'Advanced TypeScript Patterns',
+    description: 'Master Generics, Mapped Types, and Conditional Types for enterprise apps.',
+    created: new Date('2024-02-15T00:00:00Z'),
+    tags: ['typescript', 'programming', 'advanced'],
+    chapters: [
+      {
+        name: 'Generics & Constraints',
+        lessons: [
+          {
+            name: 'Generic Constraints',
+            theory: '### Why Constraints?\nSometimes you want a generic that only works on objects with a `.length` property.',
+            questions: [
+              {
+                questionText: 'Which keyword is used to constrain a generic type?',
+                body: {
+                  type: QuestionTypes.MULTIPLE_CHOICE,
+                  arguments: { options: ['implements', 'extends', 'typeof', 'keyof'] },
+                  answer: { correctIndex: 1 },
                 },
-                answer: { correctNumber: 1 },
+                solution: "The 'extends' keyword is used for generic constraints.",
               },
-              solution:
-                'An empty dependency array makes the effect run once after the initial render.',
-            },
-            {
-              questionText:
-                'Explain the difference between useMemo and useCallback.',
-              body: {
-                type: QuestionTypes.OPEN_ENDED,
-                arguments: {
-                  characterCount: null,
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '550e8400-e29b-41d4-a716-446655440000',
+    name: 'Next.js 14: The App Router',
+    description: 'Deep dive into Server Components, Server Actions, and Parallel Routes.',
+    created: new Date('2024-03-10T00:00:00Z'),
+    tags: ['nextjs', 'react', 'frontend'],
+    chapters: [
+      {
+        name: 'Server Rendering Strategies',
+        lessons: [
+          {
+            name: 'Streaming and Suspense',
+            theory: 'Streaming allows you to break down the page’s HTML into smaller chunks.',
+            questions: [
+              {
+                questionText: 'What is the default rendering type in the App Router?',
+                body: {
+                  type: QuestionTypes.OPEN_ENDED,
+                  arguments: { characterCount: null },
+                  answer: { evaluationPrompt: 'Explain Server Components as default.' },
                 },
-                answer: {
-                  evaluationPrompt:
-                    'Explain the difference between useMemo and useCallback.',
-                },
+                solution: 'React Server Components (RSC) are the default.',
               },
-              solution:
-                'useMemo memoizes a computed value, while useCallback memoizes a function reference to prevent unnecessary re-creations.',
-            },
-            {
-              questionText:
-                'Write a JavaScript function that takes two numbers and returns their sum. Your function should be named `addNumbers`.',
-              body: {
-                type: QuestionTypes.CODE_EXECUTION,
-                arguments: {
-                  languages: [codeExecutionLanguages.javascript.id],
-                  initialCode:
-                    'function addNumbers(a, b) {\n  // Write your code here\n}',
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    name: 'PostgreSQL Architecture',
+    description: 'Learn indexing, query optimization, and complex joins.',
+    created: new Date('2024-04-05T00:00:00Z'),
+    tags: ['database', 'postgresql', 'sql'],
+    chapters: [
+      {
+        name: 'Performance Tuning',
+        lessons: [
+          {
+            name: 'B-Tree Indexes',
+            theory: 'Indexes speed up retrieval but slow down writes.',
+            questions: [
+              {
+                questionText: 'What is the default port for a PostgreSQL server?',
+                body: {
+                  type: QuestionTypes.NUMERICAL,
+                  arguments: { precision: 0 },
+                  answer: { correctNumber: 5432 },
                 },
-                answer: {
-                  testCases: [
-                    { input: '2,3', expectedOutput: '5' },
-                    { input: '10,20', expectedOutput: '30' },
-                  ],
-                },
+                solution: 'Default port is 5432.',
               },
-              solution:
-                'The function should take two arguments and return their sum. For example, `addNumbers(2, 3)` should return `5`.',
-            },
-          ],
-        },
-        {
-          name: 'Advanced State Management',
-          theory: `
-# State Management Strategies
-As applications grow, managing state across multiple components becomes challenging.
-
-### Lifting State Up
-The simplest way to share state is to move it to the closest common ancestor. 
-
-### Context API
-For global settings like **Theme** or **Auth**, the Context API avoids "prop drilling."
-<video src="test.mp4" />
-> **Tip:** Don't put high-frequency updates in Context, as it can trigger re-renders across the entire tree.
-          `,
-          questions: [
-            {
-              questionText: 'Which problem does lifting state up solve?',
-              body: {
-                type: QuestionTypes.MULTIPLE_CHOICE,
-                arguments: {
-                  options: [
-                    'Code splitting',
-                    'Shared state between components',
-                    'Memory leaks',
-                    'Improving bundle size',
-                  ],
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    name: 'DevOps with Docker & K8s',
+    description: 'Containerize and orchestrate applications at scale.',
+    created: new Date('2024-05-12T00:00:00Z'),
+    tags: ['devops', 'docker', 'kubernetes'],
+    chapters: [
+      {
+        name: 'Docker Fundamentals',
+        lessons: [
+          {
+            name: 'Layer Caching',
+            theory: 'Each command in a Dockerfile creates a new layer.',
+            questions: [
+              {
+                questionText: 'Which command lists all running containers?',
+                body: {
+                  type: QuestionTypes.MULTIPLE_CHOICE,
+                  arguments: { options: ['docker ps', 'docker ls', 'docker show'] },
+                  answer: { correctIndex: 0 },
                 },
-                answer: { correctIndex: 1 },
+                solution: 'docker ps is the command.',
               },
-              solution:
-                'Lifting state up allows multiple components to share and stay in sync with the same state.',
-            },
-            {
-              questionText: 'When would you choose Context API over Redux?',
-              body: {
-                type: QuestionTypes.OPEN_ENDED,
-                arguments: {
-                  characterCount: null,
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '2540d6d5-6b80-48e8-963b-63806f366144',
+    name: 'Backend Node.js Security',
+    description: 'Protecting your API from OWASP Top 10 vulnerabilities.',
+    created: new Date('2024-06-20T00:00:00Z'),
+    tags: ['security', 'nodejs', 'backend'],
+    chapters: [
+      {
+        name: 'Authentication',
+        lessons: [
+          {
+            name: 'JWT Best Practices',
+            theory: 'Never store sensitive data in JWT payloads.',
+            questions: [
+              {
+                questionText: 'How many parts are in a JWT string?',
+                body: {
+                  type: QuestionTypes.NUMERICAL,
+                  arguments: { precision: 0 },
+                  answer: { correctNumber: 3 },
                 },
-                answer: {
-                  evaluationPrompt:
-                    'When would you choose Context API over Redux?',
-                },
+                solution: 'Header, Payload, and Signature.',
               },
-              solution:
-                'Context API is suitable for low-frequency global state like themes or auth, while Redux fits complex, high-frequency updates.',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      name: 'Backend Fundamentals',
-      lessons: [
-        {
-          name: 'HTTP & RESTful APIs',
-          theory: `
-# HTTP & RESTful Design
-REST (Representational State Transfer) is an architectural style for providing standards between computer systems on the web.
-
-### Key HTTP Methods
-- **GET**: Retrieve data.
-- **POST**: Create data.
-- **PUT**: Replace data (Idempotent).
-- **PATCH**: Partially update data.
-- **DELETE**: Remove data.
-
-### Status Codes
-- **200**: OK
-- **201**: Created
-- **400**: Bad Request
-- **401**: Unauthorized
-- **404**: Not Found
-- **500**: Internal Server Error
-          `,
-          questions: [
-            {
-              questionText: 'In standard HTTP, which port is used for HTTPS?',
-              body: {
-                type: QuestionTypes.NUMERICAL,
-                arguments: {
-                  precision: 0,
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '63d0c3f3-00a4-4340-9755-667466861f6d',
+    name: 'Python for Data Analysis',
+    description: 'Use Pandas and NumPy to clean and analyze datasets.',
+    created: new Date('2024-07-01T00:00:00Z'),
+    tags: ['python', 'data-science'],
+    chapters: [
+      {
+        name: 'Pandas DataFrames',
+        lessons: [
+          {
+            name: 'Filtering Data',
+            theory: 'Pandas allows for vectorised operations which are highly efficient.',
+            questions: [
+              {
+                questionText: 'What is the standard library for multi-dimensional arrays?',
+                body: {
+                  type: QuestionTypes.MULTIPLE_CHOICE,
+                  arguments: { options: ['Pandas', 'NumPy', 'SciPy', 'Matplotlib'] },
+                  answer: { correctIndex: 1 },
                 },
-                answer: { correctNumber: 443 },
+                solution: 'NumPy is the base for numerical arrays.',
               },
-              solution: 'Port 443 is the default port for HTTPS traffic.',
-            },
-            {
-              questionText: 'Which HTTP method is idempotent?',
-              body: {
-                type: QuestionTypes.MULTIPLE_CHOICE,
-                arguments: {
-                  options: ['POST', 'PATCH', 'PUT', 'CONNECT'],
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '06f47053-0668-4504-8b01-57d4778106a7',
+    name: 'Testing React Apps',
+    description: 'From Unit testing with Vitest to E2E with Playwright.',
+    created: new Date('2024-08-15T00:00:00Z'),
+    tags: ['testing', 'frontend', 'react'],
+    chapters: [
+      {
+        name: 'Unit Testing',
+        lessons: [
+          {
+            name: 'Mocking APIs',
+            theory: 'Mocking prevents tests from making real network requests.',
+            questions: [
+              {
+                questionText: 'Write a simple assertion that 1+1 is 2 using Jest syntax.',
+                body: {
+                  type: QuestionTypes.CODE_EXECUTION,
+                  arguments: {
+                    languages: [codeExecutionLanguages.javascript.id],
+                    initialCode: 'test("addition", () => {\n  // expect code here\n});',
+                  },
+                  answer: { testCases: [{ input: '', expectedOutput: '' }] },
                 },
-                answer: { correctIndex: 2 },
+                solution: 'expect(1 + 1).toBe(2);',
               },
-              solution:
-                'PUT is idempotent because multiple identical requests result in the same state.',
-            },
-            {
-              questionText: 'What does statelessness mean in REST APIs?',
-              body: {
-                type: QuestionTypes.OPEN_ENDED,
-                arguments: {
-                  characterCount: null,
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '0375f49d-6493-41a4-9964-6f9160d5b248',
+    name: 'CSS for UI Engineers',
+    description: 'Master Flexbox, Grid, and Modern CSS features like subgrid.',
+    created: new Date('2024-09-05T00:00:00Z'),
+    tags: ['css', 'frontend', 'ui'],
+    chapters: [
+      {
+        name: 'Modern Layouts',
+        lessons: [
+          {
+            name: 'CSS Grid Mastery',
+            theory: 'Grid is 2-dimensional while flexbox is 1-dimensional.',
+            questions: [
+              {
+                questionText: 'Which property creates space between grid items?',
+                body: {
+                  type: QuestionTypes.MULTIPLE_CHOICE,
+                  arguments: { options: ['margin', 'padding', 'gap', 'gutter'] },
+                  answer: { correctIndex: 2 },
                 },
-                answer: {
-                  evaluationPrompt:
-                    'What does statelessness mean in REST APIs?',
-                },
+                solution: 'The gap property.',
               },
-              solution:
-                'Statelessness means each request contains all information needed to process it, and the server stores no client session.',
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '18171189-61e8-4227-9907-28492021c60b',
+    name: 'Mobile with React Native',
+    description: 'Build native iOS and Android apps with JavaScript.',
+    created: new Date('2024-10-10T00:00:00Z'),
+    tags: ['mobile', 'react-native'],
+    chapters: [
+      {
+        name: 'Native Components',
+        lessons: [
+          {
+            name: 'Flexbox in Mobile',
+            theory: 'In React Native, flex-direction defaults to column.',
+            questions: [
+              {
+                questionText: 'What is the default flex-direction in React Native?',
+                body: {
+                  type: QuestionTypes.MULTIPLE_CHOICE,
+                  arguments: { options: ['row', 'column', 'row-reverse'] },
+                  answer: { correctIndex: 1 },
+                },
+                solution: 'It is column by default.',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
