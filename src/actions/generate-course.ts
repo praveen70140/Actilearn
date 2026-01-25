@@ -4,21 +4,66 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { courseSchema } from '@/lib/zod/course';
 import { z } from 'zod';
 
+// --- CONFIGURATION ---
+// Set to true to use the mock response below and save tokens
+// Set to false to use the real Gemma-3-27b-it model
+const USE_MOCK_AI = true;
+// ---------------------
+
 export async function generateCourseFromDoubt(doubt: string) {
   console.log('--- [1] STARTING COURSE GENERATION ---');
   console.log('User Doubt:', doubt);
 
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.error('CRITICAL ERROR: GEMINI_API_KEY is missing');
-      throw new Error('GEMINI_API_KEY is not defined');
-    }
+    let text: string;
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'models/gemma-3-27b-it' });
+    if (USE_MOCK_AI) {
+      console.log('--- [MOCK] USING SAVED WORKING JSON RESPONSE ---');
+      // This is the working JSON you provided, stripped of system fields 
+      // so the enrichment logic (Step 6) can add fresh IDs/Dates.
+      text = JSON.stringify({
+        name: 'HTML Fundamentals',
+        description: 'A concise introduction to the core concepts of HTML for web development.',
+        tags: ['HTML', 'Web Development', 'Frontend'],
+        chapters: [
+          {
+            name: 'Introduction to HTML',
+            lessons: [
+              {
+                name: 'HTML Basics & Structure',
+                theory: '## What is HTML?\n\nHTML (HyperText Markup Language) is the standard markup language for creating web pages. It provides the structure and content of a webpage. Browsers read HTML files and render them into visible web pages.\n\n## Basic HTML Structure\n\nEvery HTML document has a basic structure:\n\n```html\n<!DOCTYPE html>\n<html>\n<head>\n  <title>Page Title</title>\n</head>\n<body>\n  <h1>My First Heading</h1>\n  <p>My first paragraph.</p>\n</body>\n</html>\n```\n\n* `<!DOCTYPE html>`: Declares the document type.\n* `<html>`: The root element.\n* `<head>`: Contains meta-information.\n* `<title>`: Specifies a title for the page.\n* `<body>`: Contains visible content.',
+                questions: [
+                  {
+                    questionText: 'Which tag is used to define the title of an HTML document?',
+                    solution: "The `<title>` tag is placed within the `<head>` section of an HTML document and specifies the title that appears in the browser's title bar or tab.",
+                    body: {
+                      type: 0,
+                      arguments: {
+                        options: ['`<head>`', '`<title>`', '`<body>`', '`<h1>`']
+                      },
+                      answer: {
+                        correctIndex: 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+    } else {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        console.error('CRITICAL ERROR: GEMINI_API_KEY is missing');
+        throw new Error('GEMINI_API_KEY is not defined');
+      }
 
-    const prompt = `
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: 'models/gemma-3-27b-it' });
+
+      // THE EXACT PREVIOUS PROMPT (As requested: No changes)
+      const prompt = `
       You are an expert tutor. Provide a MINI-COURSE in JSON format to solve this doubt: "${doubt}".
 
       STRICT CONSTRAINTS:
@@ -57,42 +102,37 @@ export async function generateCourseFromDoubt(doubt: string) {
       }
     `;
 
-    console.log('--- [2] SENDING PROMPT TO GEMMA-3 ---');
-    console.log('Prompt Content:', prompt);
+      console.log('--- [2] SENDING PROMPT TO GEMMA-3 ---');
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      text = response.text();
+    }
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    console.log('--- [3] RAW AI RESPONSE RECEIVED ---');
+    console.log('--- [3] RESPONSE RECEIVED ---');
     console.log(text);
 
-    // EXTRACT JSON USING REGEX (Handles cases where AI adds text or backticks)
     console.log('--- [4] CLEANING RESPONSE STRING ---');
     const jsonMatch = text.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
-      console.error('ERROR: Could not find JSON object in AI response');
-      throw new Error("AI failed to return a valid JSON structure.");
+      console.error('ERROR: Could not find JSON object in response');
+      throw new Error("Invalid response format.");
     }
 
     const cleanJson = jsonMatch[0];
-    console.log('Cleaned JSON String:', cleanJson);
 
     console.log('--- [5] PARSING JSON ---');
     const parsedContent = JSON.parse(cleanJson);
-    console.log('Successfully Parsed Object keys:', Object.keys(parsedContent));
 
-    // ENRICHMENT: Adding mandatory system fields for your courseSchema
     console.log('--- [6] ENRICHING DATA WITH SYSTEM FIELDS ---');
     const finalData = {
       ...parsedContent,
       id: crypto.randomUUID(),
       _id: crypto.randomUUID(),
-      created: new Date().toISOString(),
+      created: new Date(),
     };
 
-    // Log final data structure (depth: null shows all nested objects)
+    // Log the structure to terminal
     console.dir(finalData, { depth: null });
 
     console.log('--- [7] VALIDATING AGAINST PROJECT SCHEMA ---');
@@ -104,18 +144,16 @@ export async function generateCourseFromDoubt(doubt: string) {
   } catch (error) {
     console.error('--- [X] GENERATION ERROR ---');
 
-    if (error instanceof SyntaxError) {
-      console.error('JSON Syntax Error:', error.message);
-    } else if (error instanceof z.ZodError) {
+    if (error instanceof z.ZodError) {
       console.error('Zod Validation Failed. Issues:');
       console.error(JSON.stringify(error.issues, null, 2));
     } else {
-      console.error('Unknown Error:', error);
+      console.error(error);
     }
 
     return {
       success: false,
-      error: 'Failed to generate a valid course. Check server logs for details.',
+      error: 'Failed to generate a valid course. Check server logs.',
     };
   }
 }
