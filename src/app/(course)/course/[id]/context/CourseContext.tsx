@@ -8,6 +8,7 @@ import {
   SetStateAction,
 } from 'react';
 import { useCourseNavigation } from '../hooks/useCourseNavigation';
+import { useTimeline } from '../hooks/useTimeline';
 import { CourseType, ResponseType } from '../CourseViewer';
 
 // Define the shape of the context
@@ -42,6 +43,12 @@ export const CourseProvider = ({
 }) => {
   const navigation = useCourseNavigation(course);
   const [response, setResponse] = useState(initialResponse);
+
+  useTimeline(
+    course._id,
+    navigation.currentChapterIndex,
+    navigation.currentLessonIndex,
+  );
 
   const currentQuestionResponse =
     response?.chapters[navigation.currentChapterIndex]?.lessons[
