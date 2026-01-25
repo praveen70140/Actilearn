@@ -33,10 +33,9 @@ export const courseSchema = object({
         object({
           name: string('Lesson name is required'),
           theory: string('Lesson theory text is required'),
-          questions: array(
-            questionSchema,
-            { error: 'Questions are required to be defined' },
-          )
+          questions: array(questionSchema, {
+            error: 'Questions are required to be defined',
+          })
             .min(1, 'At least one question is required to be defined')
             .nullable(),
         }),
@@ -46,9 +45,9 @@ export const courseSchema = object({
     { error: 'Chapters are required' },
   ).min(1, 'At least one chapter is required'),
 })
-.passthrough()
-.transform((data: any) => ({
-  ...data,
-  id: data.slug?.toString() ?? data.id?.toString(),
-  _id: data._id?.toString(),
-}));
+  .passthrough()
+  .transform((data) => ({
+    ...data,
+    id: data.slug?.toString() ?? data.id?.toString(),
+    _id: data._id?.toString(),
+  }));

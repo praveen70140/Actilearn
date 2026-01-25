@@ -14,9 +14,8 @@ import { QuestionTypes } from '../enum/question-types';
 import { codeExecutionLanguages } from '../constants/code-execution-languages';
 import { EvaluationStatus } from '../enum/evaluation-status';
 
-export const responseBaseSchema = looseObject({
+export const responseBaseSchema = object({
   type: nativeEnum(QuestionTypes),
-  body: looseObject({}),
 });
 
 export const responseMultipleChoiceSchema = responseBaseSchema.extend({
@@ -25,14 +24,14 @@ export const responseMultipleChoiceSchema = responseBaseSchema.extend({
     selectedIndex: number('Response is required')
       .int('Response must be an integer')
       .min(0, 'Response cannot be less than 0'),
-  }),
+  }).nullable(),
 });
 
 export const responseNumericalSchema = responseBaseSchema.extend({
   type: literal(QuestionTypes.NUMERICAL),
   body: object({
     submittedNumber: number('Response is required'),
-  }),
+  }).nullable(),
 });
 
 export const responseCodeExecutionSchema = responseBaseSchema.extend({
@@ -53,14 +52,15 @@ export const responseCodeExecutionSchema = responseBaseSchema.extend({
       1,
       'At least one test case output is required',
     ),
-  }),
+    submittedCode: string('Response is required'),
+  }).nullable(),
 });
 
 export const responseOpenEndedSchema = responseBaseSchema.extend({
   type: literal(QuestionTypes.OPEN_ENDED),
   body: object({
     submittedText: string('Response is required'),
-  }),
+  }).nullable(),
 });
 
 export const responseAllSchema = discriminatedUnion('type', [

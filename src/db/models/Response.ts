@@ -3,7 +3,7 @@ import { model, models, Schema, Types } from 'mongoose';
 import { EvaluationStatus } from '@/lib/enum/evaluation-status';
 
 interface IQuestionResponseSchema {
-  response: any[];
+  response: any;
   evaluation: EvaluationStatus;
 }
 
@@ -22,7 +22,7 @@ interface IResponseMongoSchema {
 }
 
 const questionResponseSchema = new Schema<IQuestionResponseSchema>({
-  response: { type: [{ any: {} }] },
+  response: { type: { any: {} } },
   evaluation: {
     type: Schema.Types.Number,
     required: true,
