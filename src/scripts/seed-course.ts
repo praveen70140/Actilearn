@@ -7,7 +7,7 @@ dotenv.config({ path: resolve(process.cwd(), '.env') });
 
 import connectDB from '@/lib/mongoose';
 import Course from '@/db/models/Course';
-import { seedCourseData } from '@/app/(course)/course/view/data';
+import { seedCourseData } from '@/app/(course)/course/[id]/data';
 import { QuestionTypes } from '@/lib/enum/question-types';
 
 async function seed() {

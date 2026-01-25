@@ -13,7 +13,7 @@ import { IconSend, IconSparkles } from '@tabler/icons-react';
 import { z } from 'zod';
 import { courseSchema } from '@/lib/zod/course';
 import { generateCourseFromDoubt } from '@/actions/generate-course';
-import CourseViewer from '@/app/(course)/course/view/CourseViewer';
+import CourseViewer from '@/app/(course)/course/[id]/CourseViewer';
 
 export default function DoubtsPage() {
   const [doubt, setDoubt] = useState('');

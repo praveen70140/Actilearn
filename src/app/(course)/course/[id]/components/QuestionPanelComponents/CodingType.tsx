@@ -147,7 +147,7 @@ export const CodingType = ({ question, onChange, isDisabled }: Props) => {
           <Button
             size="sm"
             onPress={onRunLocalCode}
-            isDisabled={isLoading}
+            isLoading={isLoading}
             className="absolute right-4 bottom-4 font-bold shadow-lg"
             variant="ghost"
             color="secondary"
@@ -170,6 +170,7 @@ export const CodingType = ({ question, onChange, isDisabled }: Props) => {
         />
         <Textarea
           isReadOnly
+          disabled
           label="Output Terminal"
           value={localOutput}
           placeholder="Console output will appear here"
