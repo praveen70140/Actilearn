@@ -9,33 +9,30 @@ import { responseDocumentSchema } from '@/lib/zod/responses';
 
 export default async function CourseViewPage() {
   await connectDB();
-  const courseDoc = await Course.findOne().lean();
 
+  const courseDoc = await Course.findOne().lean();
   if (!courseDoc) return <div>Course not found</div>;
 
-  // FIX: Force conversion of BSON UUID buffers to Strings
+  // Manual serialization of BSON types (UUID and ObjectId)
   const serializedCourse = {
     ...courseDoc,
     _id: courseDoc._id.toString(),
     slug: courseDoc.slug.toString(),
-    id: courseDoc.slug.toString(), // Map slug to id for your schema
+    id: courseDoc.slug.toString(),
     creator: courseDoc.creator?.toString(),
-    created: courseDoc.created?.toISOString(),
+    created: courseDoc.created instanceof Date ? courseDoc.created.toISOString() : courseDoc.created,
   };
 
-  // Validate with Zod
   const parsedCourse = courseSchema.parse(serializedCourse);
-
-  const headersList = await headers();
-  const session = await auth.api.getSession({ headers: headersList });
+  const session = await auth.api.getSession({ headers: await headers() });
   const userId = session?.user?.id;
-  
+
   let userResponse = null;
 
   if (userId) {
     const responseData = await Response.findOne({
       user: userId,
-      course: courseDoc._id // Search using the ObjectId from the DB
+      course: courseDoc._id
     }).lean();
 
     if (responseData) {

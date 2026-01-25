@@ -1,9 +1,8 @@
-import { ObjectId } from 'mongodb';
-import { model, models, Schema, Types } from 'mongoose';
+import { model, models, Schema, ObjectId } from 'mongoose';
 import { EvaluationStatus } from '@/lib/enum/evaluation-status';
 
 interface IQuestionResponseSchema {
-  response: any;
+  response: any[];
   evaluation: EvaluationStatus;
 }
 
@@ -22,32 +21,28 @@ interface IResponseMongoSchema {
 }
 
 const questionResponseSchema = new Schema<IQuestionResponseSchema>({
-  response: { type: { any: {} } },
+  response: { type: [Schema.Types.Mixed], default: [] },
   evaluation: {
-    type: Schema.Types.Number,
+    type: Number,
     required: true,
-    default: EvaluationStatus.PENDING,
   },
-});
+}, { _id: false }); // No internal IDs for question objects
 
 const lessonMongoSchema = new Schema<ILessonMongoSchema>({
-  questions: {
-    type: [questionResponseSchema],
-    required: true,
-  },
-});
+  questions: [questionResponseSchema],
+}, { _id: false });
 
 const chapterMongoSchema = new Schema<IChapterMongoSchema>({
-  lessons: {
-    type: [lessonMongoSchema],
-    required: true,
-  },
-});
+  lessons: [lessonMongoSchema],
+}, { _id: false });
 
 const ResponseMongoSchema = new Schema<IResponseMongoSchema>({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   course: { type: Schema.Types.ObjectId, ref: 'Course', required: true },
-  chapters: { type: [chapterMongoSchema], required: true },
+  chapters: [chapterMongoSchema],
+}, {
+  timestamps: true,
+  minimize: false // Keeps empty arrays intact
 });
 
 export default models.Response || model('Response', ResponseMongoSchema);
