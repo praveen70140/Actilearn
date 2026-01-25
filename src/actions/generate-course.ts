@@ -4,219 +4,118 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { courseSchema } from '@/lib/zod/course';
 import { z } from 'zod';
 
-// --- CONFIGURATION ---
-// Set this to true to use mock data and save AI tokens
-// Set this to false to use the real Gemini AI
-const USE_MOCK_AI = true;
-// ---------------------
-
-// Define a partial schema for AI generation (excluding system fields like id, created)
-// We will merge this with system fields later
-const aiCourseGenerationSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  tags: z.array(z.string()),
-  chapters: z.array(
-    z.object({
-      name: z.string(),
-      lessons: z.array(
-        z.object({
-          name: z.string(),
-          theory: z.string(),
-          questions: z.array(
-            z.object({
-              questionText: z.string(),
-              body: z.object({
-                type: z.number(), // We expect integers 0-3 matching QuestionTypes enum
-                arguments: z.record(z.string(), z.any()),
-                answer: z.record(z.string(), z.any()),
-              }),
-              solution: z.string(),
-            }),
-          ),
-        }),
-      ),
-    }),
-  ),
-});
-
 export async function generateCourseFromDoubt(doubt: string) {
+  console.log('--- [1] STARTING COURSE GENERATION ---');
+  console.log('User Doubt:', doubt);
+
   try {
-    let text: string;
-
-    if (USE_MOCK_AI) {
-      console.log('--- Using Mock AI Response ---');
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate delay
-      text = JSON.stringify({
-        name: 'Introduction to React Hooks',
-        description:
-          'A concise guide to understanding and using React Hooks effectively.',
-        tags: ['react', 'hooks', 'frontend', 'javascript'],
-        chapters: [
-          {
-            name: 'Core Hooks',
-            lessons: [
-              {
-                name: 'The useState Hook',
-                theory:
-                  'useState is a Hook that lets you add React state to function components. It returns a pair: the current state value and a function that lets you update it. You can call this function from an event handler or somewhere else.',
-                questions: [
-                  {
-                    questionText: 'What does useState return?',
-                    solution:
-                      'It returns an array with two elements: the current state value and a state setter function.',
-                    body: {
-                      type: 0,
-                      arguments: {
-                        options: [
-                          'A single value representing the state',
-                          'An object containing state and setState',
-                          'An array with the current state and a setter function',
-                          'A promise that resolves to the state',
-                        ],
-                      },
-                      answer: {
-                        correctIndex: 2,
-                      },
-                    },
-                  },
-                  {
-                    questionText: 'Which rule is NOT a rule of hooks?',
-                    solution:
-                      'Hooks can only be called inside React function components or custom hooks, and they must be called at the top level. They cannot be conditional.',
-                    body: {
-                      type: 0,
-                      arguments: {
-                        options: [
-                          'Only call Hooks at the top level',
-                          'Only call Hooks from React functions',
-                          'Only call Hooks inside loops or conditions',
-                          'Hooks must start with "use"',
-                        ],
-                      },
-                      answer: {
-                        correctIndex: 2,
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      });
-    } else {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error(
-          'GEMINI_API_KEY is not defined in environment variables',
-        );
-      }
-
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
-      const prompt = `
-        You are an expert educational content creator. A student has a doubt: "${doubt}".
-        Create a short, structured course to explain this concept and related topics.
-
-        Return the output strictly as a valid JSON object. Do not include markdown formatting (like \`\`\`json).
-        
-        The JSON must follow this exact structure:
-        {
-          "name": "Course Title (min 10 chars)",
-          "description": "Course description",
-          "tags": ["tag1", "tag2", "tag3"] (min 3 chars per tag),
-          "chapters": [
-            {
-              "name": "Chapter Title",
-              "lessons": [
-                {
-                  "name": "Lesson Title",
-                  "theory": "Detailed theory explanation...",
-                  "questions": [
-                    {
-                      "questionText": "Question text",
-                      "solution": "Explanation of the solution",
-                      "body": {
-                        "type": 0, // 0=MCQ, 1=Numerical, 3=OpenEnded. Avoid 2 (Code) for now unless specifically asked.
-                        "arguments": { ... }, // Depends on type
-                        "answer": { ... } // Depends on type
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-
-        Specific Rules for "body" based on "type":
-        
-        1. IF type is 0 (Multiple Choice):
-           "arguments": { "options": ["Option A", "Option B", "Option C", "Option D"] } (min 2 options)
-           "answer": { "correctIndex": 0 } (index of the correct option)
-           
-        2. IF type is 1 (Numerical):
-           "arguments": { "precision": 0 } (integer >= 0)
-           "answer": { "correctNumber": 42 }
-           
-        3. IF type is 3 (Open Ended/Subjective):
-           "arguments": { "characterCount": 100 } (optional max chars)
-           "answer": { "evaluationPrompt": "Key points the answer should cover..." }
-
-        Ensure:
-        - At least 1 chapter.
-        - At least 1 lesson per chapter.
-        - At least 1 question per lesson.
-        - "name" must be > 10 chars.
-        - "tags" must be > 3 chars each.
-      `;
-
-      console.log('--- Sending request to Gemini ---');
-      console.log('Doubt:', doubt);
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      text = response.text();
-
-      console.log('--- Gemini Raw Response ---');
-      console.log(text);
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error('CRITICAL ERROR: GEMINI_API_KEY is missing');
+      throw new Error('GEMINI_API_KEY is not defined');
     }
 
-    // Clean up potential markdown formatting if the model ignores the "no markdown" instruction
-    const jsonStr = text.replace(/```json\n?|\n?```/g, '').trim();
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'models/gemma-3-27b-it' });
 
-    const parsedContent = JSON.parse(jsonStr);
+    const prompt = `
+      You are an expert tutor. Provide a MINI-COURSE in JSON format to solve this doubt: "${doubt}".
 
-    // Validate structure against our loose AI schema first
-    const validAiContent = aiCourseGenerationSchema.parse(parsedContent);
+      STRICT CONSTRAINTS:
+      1. Create EXACTLY 1 Chapter.
+      2. Create EXACTLY 1 Lesson inside that chapter.
+      3. Create EXACTLY 1 Multiple Choice Question (Type 0) inside that lesson.
+      4. Output ONLY the JSON object. No explanations, no markdown blocks.
 
-    // Construct the full course object with server-generated ID and Date
-    const fullCourse = {
-      ...validAiContent,
+      REQUIRED JSON STRUCTURE:
+      {
+        "name": "Course Title (min 10 chars)",
+        "description": "Short summary",
+        "tags": ["tag1", "tag2", "tag3"],
+        "chapters": [
+          {
+            "name": "Chapter Title",
+            "lessons": [
+              {
+                "name": "Lesson Title",
+                "theory": "Detailed explanation using markdown formatting",
+                "questions": [
+                  {
+                    "questionText": "The question content",
+                    "solution": "Why the correct answer is right",
+                    "body": {
+                      "type": 0,
+                      "arguments": { "options": ["Option A", "Option B", "Option C", "Option D"] },
+                      "answer": { "correctIndex": 0 }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    `;
+
+    console.log('--- [2] SENDING PROMPT TO GEMMA-3 ---');
+    console.log('Prompt Content:', prompt);
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log('--- [3] RAW AI RESPONSE RECEIVED ---');
+    console.log(text);
+
+    // EXTRACT JSON USING REGEX (Handles cases where AI adds text or backticks)
+    console.log('--- [4] CLEANING RESPONSE STRING ---');
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+
+    if (!jsonMatch) {
+      console.error('ERROR: Could not find JSON object in AI response');
+      throw new Error("AI failed to return a valid JSON structure.");
+    }
+
+    const cleanJson = jsonMatch[0];
+    console.log('Cleaned JSON String:', cleanJson);
+
+    console.log('--- [5] PARSING JSON ---');
+    const parsedContent = JSON.parse(cleanJson);
+    console.log('Successfully Parsed Object keys:', Object.keys(parsedContent));
+
+    // ENRICHMENT: Adding mandatory system fields for your courseSchema
+    console.log('--- [6] ENRICHING DATA WITH SYSTEM FIELDS ---');
+    const finalData = {
+      ...parsedContent,
       id: crypto.randomUUID(),
-      created: new Date(),
+      _id: crypto.randomUUID(),
+      created: new Date().toISOString(),
     };
 
-    // Final Validation using the project's strict Zod schema
-    console.log('--- Validating against Project Schema ---');
-    const validatedCourse = courseSchema.parse(fullCourse);
+    // Log final data structure (depth: null shows all nested objects)
+    console.dir(finalData, { depth: null });
 
-    console.log('--- Validation Success ---');
+    console.log('--- [7] VALIDATING AGAINST PROJECT SCHEMA ---');
+    const validatedCourse = courseSchema.parse(finalData);
+
+    console.log('--- [8] SUCCESS: GENERATION COMPLETE ---');
     return { success: true, data: validatedCourse };
+
   } catch (error) {
-    console.error('--- Error Generating Course ---');
-    console.error(error);
-    if (error instanceof z.ZodError) {
-      console.error(
-        'Validation Errors:',
-        JSON.stringify(error.issues, null, 2),
-      );
+    console.error('--- [X] GENERATION ERROR ---');
+
+    if (error instanceof SyntaxError) {
+      console.error('JSON Syntax Error:', error.message);
+    } else if (error instanceof z.ZodError) {
+      console.error('Zod Validation Failed. Issues:');
+      console.error(JSON.stringify(error.issues, null, 2));
+    } else {
+      console.error('Unknown Error:', error);
     }
+
     return {
       success: false,
-      error: 'Failed to generate a valid course. Please try again.',
+      error: 'Failed to generate a valid course. Check server logs for details.',
     };
   }
 }
