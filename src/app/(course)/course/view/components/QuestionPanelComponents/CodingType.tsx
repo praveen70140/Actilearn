@@ -5,6 +5,10 @@ import {
   Button,
   Textarea,
   Chip,
+  RadioGroup,
+  Radio,
+  Select,
+  SelectItem,
 } from '@heroui/react';
 import { Editor } from '@monaco-editor/react';
 import {
@@ -13,22 +17,32 @@ import {
   IconPlayerPlay,
   IconChevronDown,
 } from '@tabler/icons-react';
-import { CodeExecutionQuestion } from '../../page';
+import { CodeExecutionQuestion } from '../../CourseViewer';
+import { responseCodeExecutionSchema } from '@/lib/zod/responses';
+import { Controller, useFormContext } from 'react-hook-form';
+import z from 'zod';
+import { codeExecutionLanguages } from '@/lib/constants/code-execution-languages';
 
 interface Props {
   question: CodeExecutionQuestion;
-  value: string;
   onChange: (value: string) => void;
   isDisabled: boolean;
 }
 
-export const CodingType = ({
-  question,
-  value,
-  onChange,
-  isDisabled,
-}: Props) => {
+export const CodingType = ({ question, onChange, isDisabled }: Props) => {
   const testCases = question.body.answer.testCases || [];
+  const { languages } = question.body.arguments;
+
+  const {
+    control,
+    watch,
+    formState: { disabled },
+  } = useFormContext<z.infer<typeof responseCodeExecutionSchema>>();
+
+  const currentLanguageId = watch('body.languageSelected');
+  const currentLanguageName = Object.values(codeExecutionLanguages).find(
+    (e) => e.id === currentLanguageId,
+  )?.name;
 
   return (
     <div className="flex flex-col gap-6">
@@ -36,24 +50,64 @@ export const CodingType = ({
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold">Code Editor</label>
-          <Chip size="sm" variant="faded" color="secondary">
-            JavaScript
-          </Chip>
+          <Controller
+            control={control}
+            name="body.languageSelected"
+            render={({
+              field: { name, value, onChange, onBlur, ref },
+              fieldState: { invalid, error },
+            }) => (
+              <Select
+                ref={ref}
+                isRequired
+                className="m-2 w-3xs"
+                errorMessage={error?.message}
+                isDisabled={disabled}
+                validationBehavior="aria"
+                isInvalid={invalid}
+                selectedKeys={[`${value}`]}
+                onBlur={onBlur}
+                onChange={(e) => {
+                  onChange(+e.target.value);
+                }}
+              >
+                {Object.values(codeExecutionLanguages)
+                  .filter((e) => languages.includes(e.id))
+                  .map((lang) => (
+                    <SelectItem key={lang.id} className="mr-2">
+                      {lang.label}
+                    </SelectItem>
+                  ))}
+              </Select>
+            )}
+          />
         </div>
         <div className="border-content2 bg-content1 relative h-[400px] overflow-hidden rounded-xl border-2">
-          <Editor
-            height="100%"
-            defaultLanguage="javascript"
-            value={value}
-            onChange={(e) => onChange(e || '')}
-            theme="vs-dark"
-            options={{
-              minimap: { enabled: false },
-              fontSize: 14,
-              padding: { top: 20 },
-              automaticLayout: true,
-            }}
+          <Controller
+            // FIXME: Prevent retaining source code of previous question on switching question
+            control={control}
+            name={'body.submittedCode'}
+            render={({
+              field: { name, value, onChange, onBlur, ref },
+              fieldState: { invalid, error },
+            }) => (
+              <Editor
+                height="100%"
+                defaultLanguage={''}
+                language={currentLanguageName}
+                value={value}
+                onChange={(e) => onChange(e || '')}
+                theme="vs-dark"
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  padding: { top: 20 },
+                  automaticLayout: true,
+                }}
+              />
+            )}
           />
+
           <Button
             size="sm"
             onPress={() => alert('Running code...')}

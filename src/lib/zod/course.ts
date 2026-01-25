@@ -1,41 +1,51 @@
-import { array, date, object, string, preprocess } from 'zod';
+import z, { array, date, json, object, string, uuid } from 'zod';
 import { questionTypeAllSchema } from './questions';
 
+const MIN_NAME_CHAR_COUNT = 10;
+const MIN_TAG_CHAR_COUNT = 3;
+
 export const questionSchema = object({
-  questionText: string(),
+  questionText: string('Question text is required'),
+  // Question body must be any one of the schemas of the
+  // predetermined question types
   body: questionTypeAllSchema,
-  solution: string(),
+  solution: string('Solution is required'),
 });
 
 export const courseSchema = object({
-  _id: preprocess((val) => val?.toString(), string()),
-  id: preprocess((val) => val?.toString(), string()), // Accept UUID string
-  name: string(),
-  description: string(),
-  created: preprocess((val) => val && new Date(val as any), date()),
-  tags: array(string()),
+  name: string('Course name is required').min(
+    MIN_NAME_CHAR_COUNT,
+    `Course name must be at least ${MIN_NAME_CHAR_COUNT} characters long`,
+  ),
+  slug: uuid('Slug is required').default(() => crypto.randomUUID()),
+  description: string('Course description is required'),
+  //  Creator is not included as it will be inferred from the user account associated with the uploader
+  created: date('Date is required'),
+  tags: array(
+    string('Tag name is required').min(
+      MIN_TAG_CHAR_COUNT,
+      `Tag name must be at least ${MIN_TAG_CHAR_COUNT} characters long`,
+    ),
+    { error: 'Tag array is required to be defined' },
+  ),
   chapters: array(
     object({
-      name: string(),
+      name: string('Chapter name is required'),
       lessons: array(
         object({
-          name: string({ required_error: 'Lesson name is required' }),
-          theory: string({ required_error: 'Lesson theory text is required' }),
-          questions: array(questionSchema, {
-            required_error: 'Questions are required to be defined',
-          })
+          name: string('Lesson name is required'),
+          theory: string('Lesson theory text is required'),
+          questions: array(
+            questionSchema,
+            // Questions can be null but cannot be an empty array
+            { error: 'Questions are required to be defined' },
+          )
             .min(1, 'At least one question is required to be defined')
             .nullable(),
         }),
-        { required_error: 'Lessons are required' },
+        { error: 'Lessons are required' },
       ).min(1, 'At least one lesson is required'),
     }),
-    { required_error: 'Chapters are required' },
+    { error: 'Chapters are required' },
   ).min(1, 'At least one chapter is required'),
-})
-  .passthrough()
-  .transform((data: any) => ({
-    ...data,
-    id: data.slug?.toString() ?? data.id?.toString(),
-    _id: data._id?.toString(),
-  }));
+});

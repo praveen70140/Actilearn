@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { codeExecutionLanguages } from '@/lib/constants/code-execution-languages';
 
 export const seedCourseData: z.infer<typeof courseSchema> = {
-  id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // New, valid UUID
+  slug: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // New, valid UUID,
   name: 'Fullstack Mastery: From Zero to Hero',
   description:
     'A comprehensive course that covers everything you need to know to become a fullstack developer, from frontend fundamentals to backend architecture and database management.',

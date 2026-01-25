@@ -13,6 +13,7 @@ import {
   questionTypeNumericalSchema,
   questionTypeOpenEndedSchema,
 } from '@/lib/zod/questions';
+import { ICourseMongoSchema } from '@/db/models/Course';
 
 export type CourseType = z.infer<typeof courseSchema>;
 export type ChapterType = CourseType['chapters'][number];
@@ -69,9 +70,7 @@ const CourseView = () => {
   );
 };
 
-import { responseDocumentSchema } from '@/lib/zod/responses';
-
-export type ResponseType = z.infer<typeof responseDocumentSchema> | null;
+export type ResponseType = ICourseMongoSchema | null;
 
 export default function CourseViewer({
   courseData,

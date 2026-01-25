@@ -25,7 +25,7 @@ async function seed() {
 
     const courseToInsert = {
       ...seedCourseData,
-      slug: seedCourseData.id,
+      slug: seedCourseData.slug,
       isPrivate: false,
       creator: 'system',
       // Mongoose might not like 'id' field if it's not in schema, so we rely on spread to include known fields
@@ -35,7 +35,7 @@ async function seed() {
 
     // Upsert the course based on slug (id)
     const result = await Course.findOneAndUpdate(
-      { slug: seedCourseData.id },
+      { slug: seedCourseData.slug },
       courseToInsert,
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );

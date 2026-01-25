@@ -1,5 +1,12 @@
 'use client';
-import { createContext, useContext, ReactNode, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  Dispatch,
+  SetStateAction,
+} from 'react';
 import { useCourseNavigation } from '../hooks/useCourseNavigation';
 import { CourseType, ResponseType } from '../CourseViewer';
 
@@ -8,7 +15,7 @@ interface CourseContextType extends ReturnType<typeof useCourseNavigation> {
   courseData: CourseType;
   response: ResponseType;
   currentQuestionResponse: any; // You might want a more specific type
-  setResponse: (response: ResponseType) => void;
+  setResponse: Dispatch<SetStateAction<ResponseType>>;
 }
 
 // Create the context

@@ -1,8 +1,11 @@
 'use client';
 import { useState } from 'react';
-import { CourseType } from '../page';
+import { courseSchema } from '@/lib/zod/course';
+import z from 'zod';
 
-export const useCourseNavigation = (courseData: CourseType) => {
+export const useCourseNavigation = (
+  courseData: z.infer<typeof courseSchema>,
+) => {
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);

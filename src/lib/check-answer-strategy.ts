@@ -1,38 +1,99 @@
-import { QuestionTypes } from "./enum/question-types";
+import z from 'zod';
+import { QuestionTypes } from './enum/question-types';
+import {
+  responseAllSchema,
+  responseBaseSchema,
+  responseCodeExecutionSchema,
+  responseMultipleChoiceSchema,
+  responseNumericalSchema,
+  responseOpenEndedSchema,
+} from './zod/responses';
+import { EvaluationStatus } from './enum/evaluation-status';
+import {
+  questionTypeAllSchema,
+  questionTypeBaseSchema,
+  questionTypeCodeExecutionSchema,
+  questionTypeMultipleChoiceSchema,
+  questionTypeNumericalSchema,
+  questionTypeOpenEndedSchema,
+} from './zod/questions';
 
 interface AnswerCheckStrategy {
-  check(answer: string, correctAnswer: any): boolean;
+  check(
+    response: z.infer<typeof responseBaseSchema.shape.body>,
+    args: z.infer<typeof questionTypeBaseSchema.shape.arguments>,
+    correctAnswer: z.infer<typeof questionTypeBaseSchema.shape.answer>,
+  ): EvaluationStatus;
 }
 
 class MultipleChoiceStrategy implements AnswerCheckStrategy {
-  check(answer: string, correctAnswer: any): boolean {
-    return parseInt(answer) === correctAnswer.correctIndex;
+  check(
+    response: z.infer<typeof responseMultipleChoiceSchema.shape.body>,
+    args: z.infer<typeof questionTypeMultipleChoiceSchema.shape.arguments>,
+    correctAnswer: z.infer<
+      typeof questionTypeMultipleChoiceSchema.shape.answer
+    >,
+  ): EvaluationStatus {
+    if (response === null) return EvaluationStatus.SKIPPED;
+
+    return response.selectedIndex === correctAnswer.correctIndex &&
+      response.selectedIndex < args.options.length
+      ? EvaluationStatus.CORRECT
+      : EvaluationStatus.INCORRECT;
   }
 }
 
 class NumericalStrategy implements AnswerCheckStrategy {
-  check(answer: string, correctAnswer: any): boolean {
-    return parseFloat(answer) === correctAnswer.correctNumber;
+  check(
+    response: z.infer<typeof responseNumericalSchema.shape.body>,
+    args: z.infer<typeof questionTypeNumericalSchema.shape.arguments>,
+    correctAnswer: z.infer<typeof questionTypeNumericalSchema.shape.answer>,
+  ): EvaluationStatus {
+    if (response === null) return EvaluationStatus.SKIPPED;
+
+    return response.submittedNumber.toFixed(args.precision) ===
+      correctAnswer.correctNumber.toFixed(args.precision)
+      ? EvaluationStatus.CORRECT
+      : EvaluationStatus.INCORRECT;
   }
 }
 
 class OpenEndedStrategy implements AnswerCheckStrategy {
-  check(answer: string, correctAnswer: any): boolean {
+  check(
+    response: z.infer<typeof responseCodeExecutionSchema.shape.body>,
+    args: z.infer<typeof questionTypeCodeExecutionSchema.shape.arguments>,
+    correctAnswer: z.infer<typeof questionTypeCodeExecutionSchema.shape.answer>,
+  ): EvaluationStatus {
+    if (response === null) return EvaluationStatus.SKIPPED;
+
     // For open ended questions, we can check for keywords or just a minimum length.
     // For now, we'll just check for minimum length.
-    return answer.trim().length > 10;
+    return response.submittedCode.trim().length > 10
+      ? EvaluationStatus.CORRECT
+      : EvaluationStatus.INCORRECT;
   }
 }
 
 class CodeExecutionStrategy implements AnswerCheckStrategy {
-    check(answer: string, correctAnswer: any): boolean {
-        // For code execution, we can't actually execute the code here.
-        // We'll just check if the answer is not empty.
-        return answer.trim().length > 10;
-    }
+  check(
+    response: z.infer<typeof responseOpenEndedSchema.shape.body>,
+    args: z.infer<typeof questionTypeOpenEndedSchema.shape.arguments>,
+    correctAnswer: z.infer<typeof questionTypeOpenEndedSchema.shape.answer>,
+  ): EvaluationStatus {
+    if (response === null) return EvaluationStatus.SKIPPED;
+
+    // For code execution, we can't actually execute the code here.
+    // We'll just check if the answer is not empty.
+    return response.submittedText.trim().length > 10
+      ? EvaluationStatus.CORRECT
+      : EvaluationStatus.INCORRECT;
+  }
 }
 
-export const answerCheckStrategyMap = new Map<QuestionTypes, AnswerCheckStrategy>([
+export const answerCheckStrategyMap = new Map<
+  QuestionTypes,
+  AnswerCheckStrategy
+>([
   [QuestionTypes.MULTIPLE_CHOICE, new MultipleChoiceStrategy()],
   [QuestionTypes.NUMERICAL, new NumericalStrategy()],
   [QuestionTypes.OPEN_ENDED, new OpenEndedStrategy()],

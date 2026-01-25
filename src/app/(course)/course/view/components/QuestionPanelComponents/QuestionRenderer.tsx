@@ -6,7 +6,10 @@ import { NumericalType } from './NumericalType';
 import { SubjectiveType } from './SubjectiveType';
 import { QuestionTypes } from '@/lib/enum/question-types';
 import { questionSchema } from '@/lib/zod/course';
-import { CodeExecutionQuestion, MultipleChoiceQuestion } from '../../page';
+import {
+  CodeExecutionQuestion,
+  MultipleChoiceQuestion,
+} from '../../CourseViewer';
 
 interface QuestionRendererProps {
   question: z.infer<typeof questionSchema>;

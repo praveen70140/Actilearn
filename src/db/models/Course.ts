@@ -6,9 +6,9 @@ interface IQuestionMongoSchema {
   solution: string;
   body: {
     type: number;
+    arguments: any;
+    answer: any;
   };
-  arguments: any;
-  answer: any;
 }
 
 interface ILessonMongoSchema {
@@ -22,10 +22,11 @@ interface IChapterMongoSchema {
   lessons: ILessonMongoSchema[];
 }
 
-interface ICourseMongoSchema {
+export interface ICourseMongoSchema {
+  _id: ObjectId;
   name: string;
   description: string;
-  slug: any;
+  slug: any; // TODO: Define explicit type
   creator: string;
   created: Date;
   isPrivate: boolean;
