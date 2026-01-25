@@ -1,81 +1,84 @@
-"use client";
-import { useState, useCallback } from "react";
+'use client';
+import { useState, useCallback } from 'react';
 import {
   Textarea,
   Button,
   Card,
-  Spinner,
   Skeleton,
   CardHeader,
   CardBody,
   CardFooter,
-} from "@heroui/react";
-import { IconPlayerPlay, IconSend, IconSparkles } from "@tabler/icons-react";
-import { z } from "zod";
-import { courseSchema } from "@/lib/zod/course";
-import { QuestionTypes } from "@/lib/enum/question-types";
-
-const mockCourse: z.infer<typeof courseSchema> = {
-  id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  name: "Generated Course Title",
-  description: "This is a sample course description generated based on your doubt.",
-  created: new Date(),
-  tags: ["sample", "course"],
-  chapters: [
-    {
-      name: "Chapter 1",
-      lessons: [
-        {
-          name: "Lesson 1",
-          theory: "This is the theory for lesson 1.",
-          questions: [
-            {
-              questionType: QuestionTypes.MULTIPLE_CHOICE,
-              questionText: "What is 2 + 2?",
-              argument: JSON.stringify({ options: ["3", "4", "5"] }),
-              answer: JSON.stringify({ answer: "4" }),
-              solution: JSON.stringify({ solution: "2 + 2 = 4" }),
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+} from '@heroui/react';
+import { IconSend, IconSparkles } from '@tabler/icons-react';
+import { z } from 'zod';
+import { courseSchema } from '@/lib/zod/course';
+import { generateCourseFromDoubt } from '@/actions/generate-course';
+import CourseViewer from '@/app/(course)/course/view/CourseViewer';
 
 export default function DoubtsPage() {
-  const [doubt, setDoubt] = useState("");
+  const [doubt, setDoubt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [course, setCourse] = useState<z.infer<typeof courseSchema> | null>(
-    null
+    null,
   );
+  const [isAttempting, setIsAttempting] = useState(false);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!doubt) return;
     setIsLoading(true);
     setCourse(null);
-    setTimeout(() => {
-      setCourse(mockCourse);
+    setIsAttempting(false);
+
+    try {
+      const result = await generateCourseFromDoubt(doubt);
+
+      if (result.success && result.data) {
+        setCourse(result.data);
+      } else {
+        console.error('Course generation failed:', result.error);
+        alert('Failed to generate course. Please try again.');
+      }
+    } catch (e) {
+      console.error('Unexpected error:', e);
+      alert('An unexpected error occurred.');
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   }, [doubt]);
 
   const handleReset = () => {
-    setDoubt("");
+    setDoubt('');
     setCourse(null);
+    setIsAttempting(false);
   };
 
+  if (isAttempting && course) {
+    return (
+      <div className="bg-background fixed inset-0 z-50">
+        <Button
+          isIconOnly
+          variant="light"
+          className="absolute top-4 right-4 z-[60] text-white/50 hover:text-white"
+          onClick={() => setIsAttempting(false)}
+        >
+          X
+        </Button>
+        <CourseViewer courseData={course} />
+      </div>
+    );
+  }
+
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4 bg-background">
+    <div className="bg-background relative flex min-h-screen items-center justify-center p-4">
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary/20 rounded-full filter blur-3xl opacity-50 animate-pulse" />
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-secondary/20 rounded-full filter blur-3xl opacity-50 animate-pulse" />
+        <div className="bg-primary/20 absolute -top-1/4 -left-1/4 h-1/2 w-1/2 animate-pulse rounded-full opacity-50 blur-3xl filter" />
+        <div className="bg-secondary/20 absolute -right-1/4 -bottom-1/4 h-1/2 w-1/2 animate-pulse rounded-full opacity-50 blur-3xl filter" />
       </div>
 
       <div className="relative z-10 w-full max-w-4xl">
         {!course && !isLoading && (
           <div className="flex flex-col items-center text-center">
-            <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mb-4 flex items-center gap-2">
+            <h1 className="from-primary to-secondary mb-4 flex items-center gap-2 bg-gradient-to-r bg-clip-text text-5xl font-extrabold text-transparent">
               <IconSparkles size={48} />
               Doubts
             </h1>
@@ -94,7 +97,7 @@ export default function DoubtsPage() {
               onClick={handleSubmit}
               disabled={!doubt}
               color="primary"
-              shadow="md"
+              variant="shadow"
               endContent={<IconSend size={20} />}
             >
               Submit
@@ -122,8 +125,8 @@ export default function DoubtsPage() {
 
         {course && (
           <Card isBlurred shadow="lg" className="border border-white/10">
-            <CardHeader className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-foreground">
+            <CardHeader className="flex items-center justify-between">
+              <h2 className="text-foreground text-2xl font-bold">
                 {course.name}
               </h2>
               <Button variant="light" onClick={handleReset}>
@@ -134,7 +137,12 @@ export default function DoubtsPage() {
               <p className="text-muted">{course.description}</p>
             </CardBody>
             <CardFooter className="flex justify-end">
-              <Button color="success" variant="shadow" size="lg">
+              <Button
+                color="success"
+                variant="shadow"
+                size="lg"
+                onClick={() => setIsAttempting(true)}
+              >
                 Attempt
               </Button>
             </CardFooter>
