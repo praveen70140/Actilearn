@@ -1,9 +1,10 @@
 import { ObjectId } from 'mongodb';
 import { model, models, Schema, Types } from 'mongoose';
+import { EvaluationStatus } from '@/lib/enum/evaluation-status';
 
 interface IQuestionResponseSchema {
   response: any[];
-  evaluation: string;
+  evaluation: EvaluationStatus;
 }
 
 interface ILessonMongoSchema {
@@ -22,7 +23,11 @@ interface IResponseMongoSchema {
 
 const questionResponseSchema = new Schema<IQuestionResponseSchema>({
   response: { type: [{ any: {} }] },
-  evaluation: { type: Schema.Types.String, required: true },
+  evaluation: {
+    type: Schema.Types.Number,
+    required: true,
+    default: EvaluationStatus.PENDING,
+  },
 });
 
 const lessonMongoSchema = new Schema<ILessonMongoSchema>({
@@ -41,7 +46,7 @@ const chapterMongoSchema = new Schema<IChapterMongoSchema>({
 
 const ResponseMongoSchema = new Schema<IResponseMongoSchema>({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  course: { type: Schema.Types.ObjectId, ref: 'Coursee', required: true },
+  course: { type: Schema.Types.ObjectId, ref: 'Course', required: true },
   chapters: { type: [chapterMongoSchema], required: true },
 });
 

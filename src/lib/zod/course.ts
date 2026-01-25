@@ -1,4 +1,4 @@
-import { array, date, json, object, string, uuid } from 'zod';
+import { array, date, object, string, uuid, preprocess } from 'zod';
 import { questionTypeAllSchema } from './questions';
 
 const MIN_NAME_CHAR_COUNT = 10;
@@ -13,14 +13,12 @@ export const questionSchema = object({
 });
 
 export const courseSchema = object({
-  id: uuid('Course ID is required'),
-  name: string('Course name is required').min(
-    MIN_NAME_CHAR_COUNT,
-    `Course name must be at least ${MIN_NAME_CHAR_COUNT} characters long`,
-  ),
+  _id: string(),
+  id: preprocess((val) => val?.toString(), string()), // Ensure UUID buffer becomes string
+  name: string().min(MIN_NAME_CHAR_COUNT),
   description: string('Course description is required'),
-  //  Creator is not included as it will be inferred from the user account associated with the uploader
-  created: date('Date is required'),
+  creator: preprocess((val) => val?.toString(), string()).optional(),
+  created: preprocess((val) => val && new Date(val as any), date()),
   tags: array(
     string('Tag name is required').min(
       MIN_TAG_CHAR_COUNT,
@@ -37,7 +35,6 @@ export const courseSchema = object({
           theory: string('Lesson theory text is required'),
           questions: array(
             questionSchema,
-            // Questions can be null but cannot be an empty array
             { error: 'Questions are required to be defined' },
           )
             .min(1, 'At least one question is required to be defined')
@@ -48,4 +45,10 @@ export const courseSchema = object({
     }),
     { error: 'Chapters are required' },
   ).min(1, 'At least one chapter is required'),
-});
+})
+.passthrough()
+.transform((data: any) => ({
+  ...data,
+  id: data.slug?.toString() ?? data.id?.toString(),
+  _id: data._id?.toString(),
+}));

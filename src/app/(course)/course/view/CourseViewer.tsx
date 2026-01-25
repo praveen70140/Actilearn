@@ -69,10 +69,16 @@ const CourseView = () => {
   );
 };
 
+import { responseDocumentSchema } from '@/lib/zod/responses';
+
+export type ResponseType = z.infer<typeof responseDocumentSchema> | null;
+
 export default function CourseViewer({
   courseData,
+  responseData,
 }: {
   courseData: CourseType;
+  responseData: ResponseType;
 }) {
   // If no course data is provided (e.g. direct access without props), show fallback or redirect
   // For the Doubt page use-case, we will render this component with props.
@@ -89,7 +95,7 @@ export default function CourseViewer({
   // 2. Keep this default export for the /course/view route if needed (though dynamic data makes static route tricky).
 
   return (
-    <CourseProvider course={courseData}>
+    <CourseProvider course={courseData} response={responseData}>
       <CourseView />
     </CourseProvider>
   );

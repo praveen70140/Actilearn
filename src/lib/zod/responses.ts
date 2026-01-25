@@ -6,10 +6,13 @@ import {
   number,
   object,
   string,
+  uuid,
+  preprocess,
 } from 'zod';
 import { nativeEnum } from 'zod/v3';
 import { QuestionTypes } from '../enum/question-types';
 import { codeExecutionLanguages } from '../constants/code-execution-languages';
+import { EvaluationStatus } from '../enum/evaluation-status';
 
 export const responseBaseSchema = looseObject({
   type: nativeEnum(QuestionTypes),
@@ -66,3 +69,23 @@ export const responseAllSchema = discriminatedUnion('type', [
   responseCodeExecutionSchema,
   responseOpenEndedSchema,
 ]);
+
+export const questionResponseSchema = object({
+  response: array(responseAllSchema),
+  evaluation: nativeEnum(EvaluationStatus),
+});
+
+export const responseDocumentSchema = object({
+  _id: preprocess((val) => val?.toString(), string()),
+  user: preprocess((val) => val?.toString(), uuid('User ID is required')),
+  course: preprocess((val) => val?.toString(), string()),
+  chapters: array(
+    object({
+      lessons: array(
+        object({
+          questions: array(questionResponseSchema),
+        }),
+      ),
+    }),
+  ),
+});
