@@ -13,6 +13,10 @@ export const questionSchema = object({
 });
 
 export const courseSchema = object({
+  // _id is optional because it is only present for persisted courses,
+  // not for transient courses generated in the Doubts page.
+  // It is required for timeline tracking.
+  _id: string().optional(),
   name: string('Course name is required').min(
     MIN_NAME_CHAR_COUNT,
     `Course name must be at least ${MIN_NAME_CHAR_COUNT} characters long`,

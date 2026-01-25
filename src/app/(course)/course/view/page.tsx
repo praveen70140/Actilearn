@@ -38,6 +38,7 @@ export default async function CourseViewPage() {
         : courseDoc.created,
     ),
     name: courseDoc.name,
+    _id: courseDoc._id.toString(),
   };
 
   const validatedFields = courseSchema.safeParse(serializedCourse);
