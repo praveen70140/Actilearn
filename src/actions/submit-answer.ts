@@ -7,7 +7,7 @@ import Course from '@/db/models/Course';
 import Response from '@/db/models/Response';
 import { courseSchema } from '@/lib/zod/course';
 import { EvaluationStatus } from '@/lib/enum/evaluation-status';
-import { answerCheckStrategyMap } from '@/lib/check-answer-strategy';
+import { answerCheckStrategyMap } from '@/lib/utils/check-answer-strategy';
 import z from 'zod';
 import { responseAllSchema } from '@/lib/zod/responses';
 

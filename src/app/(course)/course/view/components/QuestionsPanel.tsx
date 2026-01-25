@@ -9,7 +9,6 @@ import { useCourseContext } from '../context/CourseContext';
 import { QuestionTypes } from '@/lib/enum/question-types';
 import { submitAnswer } from '@/actions/submit-answer';
 import { EvaluationStatus } from '@/lib/enum/evaluation-status';
-import { answerCheckStrategyMap } from '@/lib/check-answer-strategy';
 import { FormProvider, useForm } from 'react-hook-form';
 import z from 'zod';
 import { responseAllSchema } from '@/lib/zod/responses';

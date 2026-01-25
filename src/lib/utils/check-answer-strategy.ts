@@ -1,22 +1,20 @@
 import z from 'zod';
-import { QuestionTypes } from './enum/question-types';
+import { QuestionTypes } from '../enum/question-types';
 import {
-  responseAllSchema,
   responseBaseSchema,
   responseCodeExecutionSchema,
   responseMultipleChoiceSchema,
   responseNumericalSchema,
   responseOpenEndedSchema,
-} from './zod/responses';
-import { EvaluationStatus } from './enum/evaluation-status';
+} from '../zod/responses';
+import { EvaluationStatus } from '../enum/evaluation-status';
 import {
-  questionTypeAllSchema,
   questionTypeBaseSchema,
   questionTypeCodeExecutionSchema,
   questionTypeMultipleChoiceSchema,
   questionTypeNumericalSchema,
   questionTypeOpenEndedSchema,
-} from './zod/questions';
+} from '../zod/questions';
 
 interface AnswerCheckStrategy {
   check(

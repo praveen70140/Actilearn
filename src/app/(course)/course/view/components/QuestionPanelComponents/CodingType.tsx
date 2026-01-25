@@ -22,6 +22,8 @@ import { responseCodeExecutionSchema } from '@/lib/zod/responses';
 import { Controller, useFormContext } from 'react-hook-form';
 import z from 'zod';
 import { codeExecutionLanguages } from '@/lib/constants/code-execution-languages';
+import { useState, useTransition } from 'react';
+import { runLocalCode } from '@/actions/code/run-local-code';
 
 interface Props {
   question: CodeExecutionQuestion;
@@ -43,6 +45,39 @@ export const CodingType = ({ question, onChange, isDisabled }: Props) => {
   const currentLanguageName = Object.values(codeExecutionLanguages).find(
     (e) => e.id === currentLanguageId,
   )?.name;
+
+  const [localInput, setLocalInput] = useState<string | undefined>('');
+  const [localOutput, setLocalOutput] = useState<string | undefined>('');
+  const [error, setError] = useState<string | undefined>('');
+
+  const [isLoading, startTransition] = useTransition();
+
+  const sourceCode = watch('body.submittedCode');
+
+  const onRunLocalCode = async () => {
+    setError('');
+    setLocalOutput('');
+    startTransition(async () => {
+      runLocalCode(sourceCode, currentLanguageId, localInput)
+        .then((data) => {
+          if (data && data.success) {
+            setLocalOutput(
+              (data.data.output ?? '') +
+                (data.data.error ?? '') +
+                (!data.data.error && !data.data.output
+                  ? (data.data.compileMessage ?? '')
+                  : ''),
+            );
+          }
+          if (data && data.error) {
+            setError('Code failed to run');
+          }
+        })
+        .catch((err: Error) => {
+          setError('Code failed to run');
+        });
+    });
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -102,6 +137,7 @@ export const CodingType = ({ question, onChange, isDisabled }: Props) => {
                   minimap: { enabled: false },
                   fontSize: 14,
                   padding: { top: 20 },
+                  colorDecorators: true,
                   automaticLayout: true,
                 }}
               />
@@ -110,8 +146,8 @@ export const CodingType = ({ question, onChange, isDisabled }: Props) => {
 
           <Button
             size="sm"
-            onPress={() => alert('Running code...')}
-            isDisabled={isDisabled}
+            onPress={onRunLocalCode}
+            isDisabled={isLoading}
             className="absolute right-4 bottom-4 font-bold shadow-lg"
             variant="ghost"
             color="secondary"
@@ -128,11 +164,14 @@ export const CodingType = ({ question, onChange, isDisabled }: Props) => {
           label="Input Terminal"
           placeholder="Custom input for testing..."
           variant="bordered"
+          value={localInput}
+          onChange={(e) => setLocalInput(e.target.value)}
           classNames={{ inputWrapper: 'bg-default-100 border-content1' }}
         />
         <Textarea
           isReadOnly
           label="Output Terminal"
+          value={localOutput}
           placeholder="Console output will appear here"
           variant="bordered"
           classNames={{
