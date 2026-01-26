@@ -9,6 +9,8 @@ import { QuestionTypes } from '@/lib/enum/question-types';
 import z, { string } from 'zod';
 import { EvaluationStatus } from '@/lib/enum/evaluation-status';
 
+import { redirect } from 'next/navigation';
+
 export default async function CourseViewPage({
   params,
 }: {
@@ -20,7 +22,9 @@ export default async function CourseViewPage({
   const courseDoc: ICourseMongoSchema | null = await Course.findOne({
     slug: id,
   }).lean();
-  if (!courseDoc) return <div>Course not found</div>;
+  if (!courseDoc) {
+    redirect('/dashboard?error=course_not_found');
+  }
 
   // Manual serialization of BSON types (UUID and ObjectId)
   const serializedCourse: z.infer<typeof courseSchema> = {

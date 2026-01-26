@@ -50,13 +50,19 @@ interface CategorizedCourses {
   courses: Course[];
 }
 
+import { useSearchParams } from 'next/navigation';
+
 export default function DashboardPage() {
   // useSession hook to get session data and authentication status.
   const { data: session, isPending } = useSession();
   // useRouter hook for programmatic navigation.
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   // State to control the visibility of the course confirmation modal.
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // State to control the visibility of the error modal.
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   // State to store the currently selected course.
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   // State to store the categorized courses.
@@ -106,6 +112,12 @@ export default function DashboardPage() {
     fetchData();
   }, []); // The empty dependency array ensures this effect runs only once on mount.
 
+  useEffect(() => {
+    if (searchParams.get('error') === 'course_not_found') {
+      setIsErrorModalOpen(true);
+    }
+  }, [searchParams]);
+
   // Function to handle opening the course confirmation modal.
   const handleViewCourse = (course: Course) => {
     setSelectedCourse(course);
@@ -118,6 +130,13 @@ export default function DashboardPage() {
     setSelectedCourse(null);
   };
 
+  // Function to handle closing the error modal.
+  const handleCloseErrorModal = () => {
+    setIsErrorModalOpen(false);
+    // Remove the error query parameter from the URL
+    router.replace('/dashboard');
+  };
+
   // useEffect hook to redirect to the login page if the user is not authenticated.
   useEffect(() => {
     if (!isPending && !session) {
@@ -128,7 +147,7 @@ export default function DashboardPage() {
   // Display a loading spinner while the session is being checked or if there is no session.
   if (isPending || !session) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="bg-background flex min-h-screen items-center justify-center">
         <Spinner />
       </div>
     );
@@ -139,7 +158,9 @@ export default function DashboardPage() {
     <>
       <main className="mx-auto max-w-7xl space-y-8 py-12 sm:px-6 lg:px-8">
         {/* Section for quick actions */}
-        <h2 className="text-secondary mb-6 text-4xl font-bold">Quick Actions</h2>
+        <h2 className="text-secondary mb-6 text-4xl font-bold">
+          Quick Actions
+        </h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {/* Card for 'Ask a Doubt' */}
           <Card
@@ -217,7 +238,11 @@ export default function DashboardPage() {
                         <div className="mt-4 flex flex-wrap gap-2">
                           {/* Map over the course tags and render a chip for each tag */}
                           {course.tags.map((tag) => (
-                            <Chip key={tag} variant="bordered" color="secondary">
+                            <Chip
+                              key={tag}
+                              variant="bordered"
+                              color="secondary"
+                            >
                               {tag}
                             </Chip>
                           ))}
@@ -248,7 +273,8 @@ export default function DashboardPage() {
             <ModalHeader>Continue to Course?</ModalHeader>
             <ModalBody>
               <p>
-                You are about to view the course &quot;{selectedCourse.name}&quot;.
+                You are about to view the course &quot;{selectedCourse.name}
+                &quot;.
               </p>
             </ModalBody>
             <ModalFooter>
@@ -269,6 +295,28 @@ export default function DashboardPage() {
           </ModalContent>
         </Modal>
       )}
+
+      {/* Modal for displaying course not found error */}
+      <Modal isOpen={isErrorModalOpen} onClose={handleCloseErrorModal}>
+        <ModalContent>
+          <ModalHeader className="text-danger">Course Not Found</ModalHeader>
+          <ModalBody>
+            <p>
+              The course you are trying to access could not be found. It may
+              have been removed or you might have an incorrect link.
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="danger"
+              variant="light"
+              onPress={handleCloseErrorModal}
+            >
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }
