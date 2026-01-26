@@ -126,6 +126,9 @@ class OpenEndedStrategy implements AnswerCheckStrategy {
       // Process the AI's response.
       const aiResponse = result.response.text().trim().toUpperCase();
 
+      // For debugging purposes, log the raw response from the AI.
+      console.log('Raw AI Response for Open-Ended Evaluation:', aiResponse);
+
       // Return the evaluation status based on the AI's response.
       if (aiResponse === 'CORRECT') {
         return EvaluationStatus.CORRECT;

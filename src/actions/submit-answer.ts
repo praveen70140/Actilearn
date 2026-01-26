@@ -54,7 +54,7 @@ export async function submitAnswer(
   const strategy = answerCheckStrategyMap.get(question.body.type);
   if (!strategy) return { error: 'Strategy not found' };
 
-  const evaluationStatus: EvaluationStatus = strategy.check(
+  const evaluationStatus: EvaluationStatus = await strategy.check(
     formData.body,
     question.body.arguments,
     question.body.answer,
