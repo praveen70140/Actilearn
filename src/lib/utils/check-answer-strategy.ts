@@ -15,42 +15,70 @@ import {
   questionTypeNumericalSchema,
   questionTypeOpenEndedSchema,
 } from '../zod/questions';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
+// We are using the Gemini API to evaluate open-ended questions.
+// The model being used is 'gemini-1.5-flash', which is also used in other parts of the application (e.g., course generation).
+// A new GoogleGenerativeAI client is instantiated here.
+// It requires the GEMINI_API_KEY to be set in the environment variables.
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
+
+/**
+ * @interface AnswerCheckStrategy
+ * @description Defines the interface for different answer checking strategies.
+ * The `check` method is asynchronous to accommodate potential I/O operations,
+ * such as calling an AI model for evaluation.
+ */
 interface AnswerCheckStrategy {
   check(
     response: z.infer<typeof responseBaseSchema.shape.body>,
     args: z.infer<typeof questionTypeBaseSchema.shape.arguments>,
     correctAnswer: z.infer<typeof questionTypeBaseSchema.shape.answer>,
-  ): EvaluationStatus;
+  ): Promise<EvaluationStatus>;
 }
 
+/**
+ * @class MultipleChoiceStrategy
+ * @description Strategy for checking multiple-choice questions.
+ * It compares the selected index from the user's response with the correct index.
+ */
 class MultipleChoiceStrategy implements AnswerCheckStrategy {
-  check(
+  async check(
     response: z.infer<typeof responseMultipleChoiceSchema.shape.body>,
     args: z.infer<typeof questionTypeMultipleChoiceSchema.shape.arguments>,
     correctAnswer: z.infer<
       typeof questionTypeMultipleChoiceSchema.shape.answer
     >,
-  ): EvaluationStatus {
+  ): Promise<EvaluationStatus> {
+    // If the response is null, the user skipped the question.
     if (response === null) return EvaluationStatus.SKIPPED;
 
+    // Check if the selected index matches the correct index.
     return response.selectedIndex === correctAnswer.correctIndex
       ? EvaluationStatus.CORRECT
       : EvaluationStatus.INCORRECT;
   }
 }
 
+/**
+ * @class NumericalStrategy
+ * @description Strategy for checking numerical questions.
+ * It compares the user's submitted number with the correct number, up to a specified precision.
+ */
 class NumericalStrategy implements AnswerCheckStrategy {
-  check(
+  async check(
     response: z.infer<typeof responseNumericalSchema.shape.body>,
     args: z.infer<typeof questionTypeNumericalSchema.shape.arguments>,
     correctAnswer: z.infer<typeof questionTypeNumericalSchema.shape.answer>,
-  ): EvaluationStatus {
+  ): Promise<EvaluationStatus> {
+    // If the response is null, the user skipped the question.
     if (response === null) return EvaluationStatus.SKIPPED;
 
+    // For debugging purposes, log the response and correct answer.
     console.log('lol1: ', response);
     console.log('lol2: ', correctAnswer);
 
+    // Compare the numbers after formatting them to the required precision.
     return response.submittedNumber.toFixed(args.precision) ===
       correctAnswer.correctNumber.toFixed(args.precision)
       ? EvaluationStatus.CORRECT
@@ -58,38 +86,93 @@ class NumericalStrategy implements AnswerCheckStrategy {
   }
 }
 
+/**
+ * @class OpenEndedStrategy
+ * @description Strategy for checking open-ended questions using an AI model.
+ * This strategy sends the question and the user's answer to the Gemini API for evaluation.
+ */
 class OpenEndedStrategy implements AnswerCheckStrategy {
-  check(
+  async check(
     response: z.infer<typeof responseOpenEndedSchema.shape.body>,
     args: z.infer<typeof questionTypeOpenEndedSchema.shape.arguments>,
     correctAnswer: z.infer<typeof questionTypeOpenEndedSchema.shape.answer>,
-  ): EvaluationStatus {
+  ): Promise<EvaluationStatus> {
+    // If the response is null, the user skipped the question.
     if (response === null) return EvaluationStatus.SKIPPED;
 
-    // For open ended questions, we can check for keywords or just a minimum length.
-    // For now, we'll just check for minimum length.
-    return response.submittedText.trim().length > 10
-      ? EvaluationStatus.CORRECT
-      : EvaluationStatus.INCORRECT;
+    // The user wants to use Gemini to evaluate the answer.
+    // Initialize the Gemini model. We use 'gemini-1.5-flash' for this task.
+    const model = genAI.getGenerativeModel({ model: 'models/gemma-3-27b-it' });
+
+    // The `correctAnswer` for an open-ended question includes the question text.
+    // This is used to provide context to the AI model.
+    const prompt = `
+      You are an AI assistant tasked with evaluating a user's answer to a question.
+      Your evaluation should be based on the conceptual correctness of the answer.
+      The answer does not need to be a verbatim match to any specific solution, but it must correctly address the question.
+
+      The question is: "${correctAnswer.question}"
+      The user's answer is: "${response.submittedText}"
+      
+      Please evaluate if the user's answer is correct.
+      
+      Respond with only one of the following two words: "CORRECT" or "INCORRECT".
+      Do not provide any additional explanation or commentary.
+    `;
+
+    try {
+      // Generate content using the AI model with the constructed prompt.
+      const result = await model.generateContent(prompt);
+      // Process the AI's response.
+      const aiResponse = result.response.text().trim().toUpperCase();
+
+      // For debugging purposes, log the raw response from the AI.
+      console.log('Raw AI Response for Open-Ended Evaluation:', aiResponse);
+
+      // Return the evaluation status based on the AI's response.
+      if (aiResponse === 'CORRECT') {
+        return EvaluationStatus.CORRECT;
+      } else {
+        return EvaluationStatus.INCORRECT;
+      }
+    } catch (error) {
+      // If there is an error with the AI evaluation, log the error.
+      console.error('Error evaluating open ended answer with AI:', error);
+      // If the AI evaluation fails, we mark the response as PENDING.
+      // This indicates that the evaluation could not be completed and may need to be retried.
+      return EvaluationStatus.PENDING;
+    }
   }
 }
 
+/**
+ * @class CodeExecutionStrategy
+ * @description Strategy for checking code execution questions.
+ * Currently, this is a placeholder and does not execute code.
+ * It performs a basic check to see if the submitted code is not empty.
+ */
 class CodeExecutionStrategy implements AnswerCheckStrategy {
-  check(
+  async check(
     response: z.infer<typeof responseCodeExecutionSchema.shape.body>,
     args: z.infer<typeof questionTypeCodeExecutionSchema.shape.arguments>,
     correctAnswer: z.infer<typeof questionTypeCodeExecutionSchema.shape.answer>,
-  ): EvaluationStatus {
+  ): Promise<EvaluationStatus> {
+    // If the response is null, the user skipped the question.
     if (response === null) return EvaluationStatus.SKIPPED;
 
-    // For code execution, we can't actually execute the code here.
-    // We'll just check if the answer is not empty.
+    // This is a placeholder check. In a real scenario, this would involve
+    // a more complex process of running the code and checking the output.
+    // For now, we just check if the code is longer than 10 characters.
     return response.submittedCode.trim().length > 10
       ? EvaluationStatus.CORRECT
       : EvaluationStatus.INCORRECT;
   }
 }
 
+/**
+ * @description A map that associates question types with their corresponding checking strategies.
+ * This allows for easy retrieval of the correct strategy for a given question type.
+ */
 export const answerCheckStrategyMap = new Map<
   QuestionTypes,
   AnswerCheckStrategy
