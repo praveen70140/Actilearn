@@ -10,6 +10,7 @@ import { EvaluationStatus } from '@/lib/enum/evaluation-status';
 import { answerCheckStrategyMap } from '@/lib/utils/check-answer-strategy';
 import z from 'zod';
 import { responseAllSchema } from '@/lib/zod/responses';
+import { Types } from 'mongoose';
 
 export async function submitAnswer(
   courseSlug: string,
@@ -25,14 +26,16 @@ export async function submitAnswer(
   if (!userId) return { error: 'User not authenticated' };
 
   // 1. Find course by slug (UUID string)
-  const courseDoc = await Course.findOne({ slug: courseSlug }).lean();
+  const courseDoc = await Course.findOne({
+    slug: new Types.UUID(courseSlug),
+  }).lean();
   if (!courseDoc) return { error: 'Course not found' };
 
   // 2. Validate course for logic
   const validatedFields = courseSchema.safeParse({
     ...courseDoc,
     _id: courseDoc._id.toString(),
-    id: courseDoc.slug.toString(),
+    slug: courseDoc.slug.toString(),
   });
 
   if (validatedFields.error) {
@@ -51,14 +54,13 @@ export async function submitAnswer(
   const strategy = answerCheckStrategyMap.get(question.body.type);
   if (!strategy) return { error: 'Strategy not found' };
 
-  const isCorrect = strategy.check(
-    formData,
+  const evaluationStatus: EvaluationStatus = strategy.check(
+    formData.body,
     question.body.arguments,
     question.body.answer,
   );
-  const evaluation = isCorrect
-    ? EvaluationStatus.CORRECT
-    : EvaluationStatus.INCORRECT;
+
+  console.log('status: ', evaluationStatus);
 
   // 4. Update Response using actual ObjectIds
   let response = await Response.findOne({
@@ -85,12 +87,12 @@ export async function submitAnswer(
   response.chapters[chapterIndex].lessons[lessonIndex].questions[
     questionIndex
   ] = {
-    response: [formData],
-    evaluation: evaluation,
+    response: formData,
+    evaluation: evaluationStatus,
   };
 
   response.markModified('chapters');
   await response.save();
 
-  return { evaluation };
+  return { success: true, data: { evaluationStatus } };
 }

@@ -10,12 +10,15 @@ import {
 import { useCourseNavigation } from '../hooks/useCourseNavigation';
 import { useTimeline } from '../hooks/useTimeline';
 import { CourseType, ResponseType } from '../CourseViewer';
+import z from 'zod';
+import { responseAllSchema } from '@/lib/zod/responses';
+import { IQuestionResponseSchema } from '@/db/models/Response';
 
 // Define the shape of the context
 interface CourseContextType extends ReturnType<typeof useCourseNavigation> {
   courseData: CourseType;
   response: ResponseType;
-  currentQuestionResponse: any; // You might want a more specific type
+  currentQuestionResponse: IQuestionResponseSchema | undefined; // You might want a more specific type
   setResponse: Dispatch<SetStateAction<ResponseType>>;
 }
 

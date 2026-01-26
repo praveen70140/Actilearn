@@ -5,16 +5,10 @@ import { Controller, useFormContext } from 'react-hook-form';
 import z from 'zod';
 
 interface SubjectiveTypeProps {
-  value: string;
-  onChange: (value: string) => void;
   isDisabled: boolean;
 }
 
-export const SubjectiveType = ({
-  value,
-  onChange,
-  isDisabled,
-}: SubjectiveTypeProps) => {
+export const SubjectiveType = ({ isDisabled }: SubjectiveTypeProps) => {
   const {
     control,
     watch,

@@ -16,22 +16,48 @@ import {
   IconX,
   IconPlayerPlay,
   IconChevronDown,
+  IconCircleHalfVertical,
+  IconCircleCheck,
+  IconCircleX,
 } from '@tabler/icons-react';
 import { CodeExecutionQuestion } from '../../CourseViewer';
 import { responseCodeExecutionSchema } from '@/lib/zod/responses';
 import { Controller, useFormContext } from 'react-hook-form';
 import z from 'zod';
 import { codeExecutionLanguages } from '@/lib/constants/code-execution-languages';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { runLocalCode } from '@/actions/code/run-local-code';
+import { EvaluationStatus } from '@/lib/enum/evaluation-status';
+import { questionTypeCodeExecutionSchema } from '@/lib/zod/questions';
 
 interface Props {
   question: CodeExecutionQuestion;
-  onChange: (value: string) => void;
   isDisabled: boolean;
 }
 
-export const CodingType = ({ question, onChange, isDisabled }: Props) => {
+const TestCaseStatusIcon = ({
+  index,
+  testCaseAnswers,
+  testCaseResponses,
+}: {
+  testCaseResponses: string[] | null | undefined;
+  testCaseAnswers: { input: string | null; expectedOutput: string }[];
+  index: number;
+}) => {
+  if (!testCaseResponses)
+    return <IconCircleHalfVertical className="text-default" />;
+
+  if (testCaseResponses[index].length === 0)
+    return <IconCircleHalfVertical className="text-default" />;
+
+  return testCaseResponses[index] === testCaseAnswers[index].expectedOutput ? (
+    <IconCircleCheck className="text-success" />
+  ) : (
+    <IconCircleX className="text-danger" />
+  );
+};
+
+export const CodingType = ({ question, isDisabled }: Props) => {
   const testCases = question.body.answer.testCases || [];
   const { languages } = question.body.arguments;
 
@@ -39,12 +65,15 @@ export const CodingType = ({ question, onChange, isDisabled }: Props) => {
     control,
     watch,
     formState: { disabled },
+    setValue,
   } = useFormContext<z.infer<typeof responseCodeExecutionSchema>>();
 
   const currentLanguageId = watch('body.languageSelected');
   const currentLanguageName = Object.values(codeExecutionLanguages).find(
     (e) => e.id === currentLanguageId,
   )?.name;
+
+  const testCaseResponses = watch('body.testCaseOutput');
 
   const [localInput, setLocalInput] = useState<string | undefined>('');
   const [localOutput, setLocalOutput] = useState<string | undefined>('');
@@ -53,6 +82,15 @@ export const CodingType = ({ question, onChange, isDisabled }: Props) => {
   const [isLoading, startTransition] = useTransition();
 
   const sourceCode = watch('body.submittedCode');
+
+  useEffect(() => {
+    if (!testCaseResponses) {
+      setValue(
+        'body.testCaseOutput',
+        [...Array(10).keys()].map((e) => ''),
+      );
+    }
+  }, []);
 
   const onRunLocalCode = async () => {
     setError('');
@@ -192,11 +230,11 @@ export const CodingType = ({ question, onChange, isDisabled }: Props) => {
               title={`Test #${i + 1}`}
               indicator={<IconChevronDown size={18} />}
               startContent={
-                i === 2 ? (
-                  <IconX className="text-danger" />
-                ) : (
-                  <IconCheck className="text-success" />
-                )
+                <TestCaseStatusIcon
+                  index={i}
+                  testCaseAnswers={testCases}
+                  testCaseResponses={testCaseResponses}
+                />
               }
               classNames={{
                 base: 'bg-background border border-content2 mb-2',
@@ -234,8 +272,9 @@ export const CodingType = ({ question, onChange, isDisabled }: Props) => {
                     classNames={{
                       input: 'font-mono',
                     }}
+                    placeholder="<No output>"
                     variant="flat"
-                    value={i === 2 ? 'Error' : test.expectedOutput}
+                    value={testCaseResponses ? testCaseResponses[i] : undefined}
                   />
                 </div>
               </div>

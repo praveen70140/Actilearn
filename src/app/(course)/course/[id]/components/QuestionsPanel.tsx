@@ -14,6 +14,7 @@ import z from 'zod';
 import { responseAllSchema } from '@/lib/zod/responses';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ResponseType } from '../CourseViewer';
+import FormError from '@/components/form/form-error';
 
 export function QuestionsPanel() {
   const {
@@ -30,14 +31,16 @@ export function QuestionsPanel() {
     setResponse,
   } = useCourseContext();
 
-  const [answer, setAnswer] = useState<any>(null);
   // const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submissionStatus = currentQuestionResponse?.evaluation;
   const isSubmitted =
     submissionStatus !== undefined &&
-    submissionStatus !== EvaluationStatus.PENDING;
+    submissionStatus !== EvaluationStatus.PENDING &&
+    submissionStatus !== EvaluationStatus.SKIPPED;
   const isCorrect = submissionStatus === EvaluationStatus.CORRECT;
+
+  const [error, setError] = useState<string | undefined>(undefined);
 
   const methods = useForm<z.infer<typeof responseAllSchema>>({
     resolver: zodResolver(responseAllSchema),
@@ -51,35 +54,40 @@ export function QuestionsPanel() {
   const responses = methods.watch('body');
   const [isPending, startTransition] = useTransition();
 
+  const formType = methods.watch('type');
+
   useEffect(() => {
-    const previousAnswer = currentQuestionResponse?.response;
-    if (previousAnswer) {
-      setAnswer(previousAnswer);
-    } else if (currentQuestion?.body.type === QuestionTypes.CODE_EXECUTION) {
-      setAnswer(currentQuestion.body.arguments.initialCode || '');
-    } else {
-      setAnswer('');
-    }
+    methods.reset({
+      type: currentQuestion?.body.type as any,
+      body: responses as any,
+    });
   }, [currentQuestion, currentQuestionResponse]);
 
   const handleSubmit = async () => {
-    console.log(answer);
-    console.log(currentQuestion);
-    console.log(!currentQuestion);
+    console.log('clicked');
 
-    if (!answer || !currentQuestion) return;
+    const rawFormData = methods.getValues();
+
+    if (!rawFormData.body || !currentQuestion) return;
+
+    const validatedFields = await responseAllSchema.safeParse(rawFormData);
+    if (validatedFields.error) {
+      setError(validatedFields.error.message);
+      return;
+    }
+    const { data: formData } = validatedFields;
+
     startTransition(async () => {
       const result = await submitAnswer(
         courseData.slug,
         currentChapterIndex,
         currentLessonIndex,
         currentQuestionIndex,
-        answer,
+        methods.getValues(),
       );
 
       if (result.error) {
-        // Handle error appropriately
-        console.error(result.error);
+        setError(result.error);
         return;
       }
 
@@ -100,8 +108,8 @@ export function QuestionsPanel() {
         newResponse.chapters[currentChapterIndex].lessons[
           currentLessonIndex
         ].questions[currentQuestionIndex] = {
-          response: [answer],
-          evaluation: result.evaluation,
+          response: formData.body,
+          evaluation: result.data?.evaluationStatus,
         };
         return newResponse;
       });
@@ -167,12 +175,11 @@ export function QuestionsPanel() {
 
             <QuestionRenderer
               question={currentQuestion}
-              value={answer}
-              onChange={setAnswer}
               isDisabled={isCorrect || isPending}
             />
 
             <div className="flex flex-col gap-4">
+              <FormError message={error} />
               <FeedbackBanner feedback={feedback} />
               <Button
                 size="lg"
@@ -187,7 +194,6 @@ export function QuestionsPanel() {
                 <SolutionBox solution={currentQuestion.solution} />
               )}
             </div>
-            <p>{JSON.stringify(responses)}</p>
           </CardBody>
         </Card>
       </div>

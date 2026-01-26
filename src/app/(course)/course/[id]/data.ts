@@ -1,4 +1,3 @@
-
 /**
  * This file contains the seed data for the "Fullstack Mastery: From Zero to Hero" course.
  * The data is structured according to the courseSchema from Zod.
@@ -88,10 +87,12 @@ useEffect(() => {
               body: {
                 type: QuestionTypes.CODE_EXECUTION,
                 arguments: {
-                  languages: [codeExecutionLanguages.javascript.id],
-                  initialCode: `function addNumbers(a, b) {
-  // Write your code here
-}`,
+                  languages: [
+                    codeExecutionLanguages.javascript.id,
+                    codeExecutionLanguages.python.id,
+                  ],
+                  initialCode:
+                    'function addNumbers(a, b) {\n  // Write your code here\n}',
                 },
                 answer: {
                   testCases: [
@@ -100,8 +101,7 @@ useEffect(() => {
                   ],
                 },
               },
-              solution:
-                'Return the sum of the two input numbers.',
+              solution: 'Return the sum of the two input numbers.',
             },
           ],
         },
@@ -144,4 +144,3 @@ Avoid prop drilling for global state.
     },
   ],
 };
-

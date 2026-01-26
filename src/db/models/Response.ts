@@ -1,7 +1,7 @@
 import { model, models, Schema, ObjectId } from 'mongoose';
 import { EvaluationStatus } from '@/lib/enum/evaluation-status';
 
-interface IQuestionResponseSchema {
+export interface IQuestionResponseSchema {
   response: any;
   evaluation: EvaluationStatus;
 }

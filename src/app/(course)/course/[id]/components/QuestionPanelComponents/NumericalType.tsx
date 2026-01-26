@@ -5,12 +5,10 @@ import { Controller, useFormContext } from 'react-hook-form';
 import z from 'zod';
 
 interface Props {
-  value: string;
-  onChange: (value: string) => void;
   isDisabled: boolean;
 }
 
-export const NumericalType = ({ onChange, isDisabled }: Props) => {
+export const NumericalType = ({ isDisabled }: Props) => {
   const {
     control,
     watch,
@@ -30,7 +28,7 @@ export const NumericalType = ({ onChange, isDisabled }: Props) => {
           variant="bordered"
           placeholder="Enter your numeric answer..."
           value={`${value}`}
-          onValueChange={onChange}
+          onValueChange={(e) => onChange(+e)}
           isDisabled={isDisabled}
           classNames={{
             inputWrapper:

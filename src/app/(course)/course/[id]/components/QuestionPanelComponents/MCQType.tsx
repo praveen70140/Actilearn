@@ -7,12 +7,10 @@ import { MultipleChoiceQuestion } from '../../CourseViewer';
 
 interface Props {
   question: MultipleChoiceQuestion;
-  value: string;
-  onChange: (value: string) => void;
   isDisabled: boolean;
 }
 
-export const MCQType = ({ question, onChange, isDisabled }: Props) => {
+export const MCQType = ({ question, isDisabled }: Props) => {
   const { options } = question.body.arguments;
 
   const {
@@ -39,6 +37,7 @@ export const MCQType = ({ question, onChange, isDisabled }: Props) => {
           onBlur={onBlur}
           classNames={{ wrapper: 'gap-4' }}
         >
+          <p>{value}</p>
           {options?.map((opt: string, idx: number) => (
             <Radio
               key={idx}

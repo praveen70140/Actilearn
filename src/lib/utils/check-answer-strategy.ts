@@ -34,8 +34,7 @@ class MultipleChoiceStrategy implements AnswerCheckStrategy {
   ): EvaluationStatus {
     if (response === null) return EvaluationStatus.SKIPPED;
 
-    return response.selectedIndex === correctAnswer.correctIndex &&
-      response.selectedIndex < args.options.length
+    return response.selectedIndex === correctAnswer.correctIndex
       ? EvaluationStatus.CORRECT
       : EvaluationStatus.INCORRECT;
   }
@@ -48,6 +47,9 @@ class NumericalStrategy implements AnswerCheckStrategy {
     correctAnswer: z.infer<typeof questionTypeNumericalSchema.shape.answer>,
   ): EvaluationStatus {
     if (response === null) return EvaluationStatus.SKIPPED;
+
+    console.log('lol1: ', response);
+    console.log('lol2: ', correctAnswer);
 
     return response.submittedNumber.toFixed(args.precision) ===
       correctAnswer.correctNumber.toFixed(args.precision)
