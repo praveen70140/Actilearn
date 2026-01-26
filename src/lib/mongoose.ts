@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 //   throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
 // }
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/actilearn';
+const uri = process.env.MONGODB_URI;
 
 /**
  * Global is used here to maintain a cached connection across hot reloads
