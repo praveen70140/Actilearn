@@ -15,6 +15,7 @@ interface IChapterMongoSchema {
 }
 
 export interface IResponseMongoSchema {
+  _id: ObjectId;
   user: ObjectId;
   course: ObjectId;
   chapters: IChapterMongoSchema[];

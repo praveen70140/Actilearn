@@ -14,6 +14,7 @@ import {
   questionTypeOpenEndedSchema,
 } from '@/lib/zod/questions';
 import { ICourseMongoSchema } from '@/db/models/Course';
+import { IResponseMongoSchema } from '@/db/models/Response';
 
 export type CourseType = z.infer<typeof courseSchema>;
 export type ChapterType = CourseType['chapters'][number];
@@ -70,7 +71,7 @@ const CourseView = () => {
   );
 };
 
-export type ResponseType = ICourseMongoSchema | null;
+export type ResponseType = IResponseMongoSchema | null;
 
 export default function CourseViewer({
   courseData,

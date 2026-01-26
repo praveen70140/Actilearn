@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import connectDB from '@/lib/mongoose';
 import Course, { ICourseMongoSchema } from '@/db/models/Course';
-import CourseViewer from './CourseViewer';
+import CourseViewer, { ResponseType } from './CourseViewer';
 import { courseSchema } from '@/lib/zod/course';
 import Response, { IResponseMongoSchema } from '@/db/models/Response';
 import { auth } from '@/lib/auth';
@@ -55,7 +55,7 @@ export default async function CourseViewPage() {
   const { data: parsedCourse } = validatedFields;
 
   if (userId) {
-    let responseData: IResponseMongoSchema | null = await Response.findOne({
+    let responseData: ResponseType | null = await Response.findOne({
       user: userId,
       course: courseDoc._id,
     }).lean();
@@ -65,7 +65,7 @@ export default async function CourseViewPage() {
         lessons: chapter.lessons.map((lesson) => ({
           questions: lesson.questions.map(() => ({
             response: {},
-            evaluation: EvaluationStatus.PENDING,
+            evaluation: EvaluationStatus.SKIPPED,
           })),
         })),
       }));
@@ -81,7 +81,9 @@ export default async function CourseViewPage() {
 
     if (responseData) {
       const transformedResponseData = {
-        ...responseData,
+        user: responseData.user.toString(),
+        course: responseData.course.toString(),
+        _id: responseData._id.toString(),
         chapters: responseData.chapters.map((chapter, chapterIndex) => ({
           ...chapter,
           lessons: chapter.lessons.map((lesson, lessonIndex) => ({
