@@ -1,5 +1,11 @@
 'use client';
-// Import necessary modules and components
+/**
+ * This is the main dashboard page where users can see available courses and navigate to other parts of the application.
+ * It fetches the list of courses and course categories from the API, groups the courses by category, and displays them in sections.
+ * It also provides quick action cards to navigate to other pages like 'Ask a Doubt', 'Compete', and 'View Your Streak'.
+ */
+
+// Import necessary modules and components from Next.js, React, and other libraries.
 import NextLink from 'next/link';
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
@@ -21,102 +27,105 @@ import {
 } from '@heroui/react';
 import { IconHelp, IconTrophy, IconFlame } from '@tabler/icons-react';
 
-// Define the structure of a Course
+// Define the structure of a Course object that we expect from the API.
 interface Course {
   _id: string;
+  slug: string;
   name: string;
   tags: string[];
 }
 
-// Define the structure for course categories
+// Define the structure of a Course Category object that we expect from the API.
 interface CourseCategory {
+  _id: string;
+  name: string;
+  label: string;
+  icon: string;
+  tags: { name: string; label: string; icon: string }[];
+}
+
+// Define the structure for the categorized courses to be displayed.
+interface CategorizedCourses {
   category: string;
   courses: Course[];
 }
 
-// Placeholder data for non-tech courses
-const staticCourseCategories: CourseCategory[] = [
-  {
-    category: '11th Grade',
-    courses: [
-      { _id: '1', name: 'Physics - Mechanics', tags: ['Physics', '11th'] },
-      { _id: '2', name: 'Chemistry - Organic Basics', tags: ['Chemistry', '11th'] },
-      { _id: '3', name: 'Mathematics - Algebra', tags: ['Math', '11th'] },
-    ],
-  },
-  {
-    category: '12th Grade',
-    courses: [
-      { _id: '4', name: 'Physics - Electromagnetism', tags: ['Physics', '12th'] },
-      { _id: '5', name: 'Chemistry - Advanced Organic', tags: ['Chemistry', '12th'] },
-      { _id: '6', name: 'Mathematics - Calculus', tags: ['Math', '12th'] },
-    ],
-  },
-  {
-    category: 'B.Com',
-    courses: [
-      { _id: '7', name: 'Financial Accounting', tags: ['Commerce', 'B.Com'] },
-      { _id: '8', name: 'Business Law', tags: ['Commerce', 'B.Com'] },
-      { _id: '9', name: 'Principles of Management', tags: ['Management', 'B.Com'] },
-    ],
-  },
-];
-
 export default function DashboardPage() {
+  // useSession hook to get session data and authentication status.
   const { data: session, isPending } = useSession();
+  // useRouter hook for programmatic navigation.
   const router = useRouter();
+  // State to control the visibility of the course confirmation modal.
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // State to store the currently selected course.
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [courseCategories, setCourseCategories] = useState<CourseCategory[]>(
-    [],
-  );
+  // State to store the categorized courses.
+  const [categorizedCourses, setCategorizedCourses] = useState<
+    CategorizedCourses[]
+  >([]);
 
-  // Fetch courses from the API on component mount
+  // useEffect hook to fetch courses and categories from the API when the component mounts.
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       try {
-        // Fetch courses from the API
-        const response = await fetch('/api/courses');
-        if (!response.ok) {
-          throw new Error('Failed to fetch courses');
-        }
-        const techCourses: Course[] = await response.json();
-
-        // Combine static categories with fetched tech courses
-        setCourseCategories([
-          { category: 'Tech', courses: techCourses },
-          ...staticCourseCategories,
+        // Fetch courses and categories in parallel.
+        const [coursesResponse, categoriesResponse] = await Promise.all([
+          fetch('/api/courses'),
+          fetch('/api/courses/categories'),
         ]);
+
+        if (!coursesResponse.ok || !categoriesResponse.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const courses: Course[] = await coursesResponse.json();
+        const categories: CourseCategory[] = await categoriesResponse.json();
+
+        // Group courses by category.
+        const groupedCourses = categories.map((category) => {
+          const categoryTags = new Set(category.tags.map((tag) => tag.name));
+          const coursesInCategory = courses.filter((course) =>
+            course.tags.some((tag) => categoryTags.has(tag)),
+          );
+          return {
+            category: category.name,
+            courses: coursesInCategory,
+          };
+        });
+
+        // Filter out categories with no courses.
+        setCategorizedCourses(
+          groupedCourses.filter((group) => group.courses.length > 0),
+        );
       } catch (error) {
-        // Log error and set only static categories as a fallback
-        console.error('Error fetching courses:', error);
-        setCourseCategories(staticCourseCategories);
+        // Log any errors that occur during the fetch operation.
+        console.error('Error fetching data:', error);
       }
     };
 
-    fetchCourses();
-  }, []);
+    fetchData();
+  }, []); // The empty dependency array ensures this effect runs only once on mount.
 
-  // Handle opening the course view modal
+  // Function to handle opening the course confirmation modal.
   const handleViewCourse = (course: Course) => {
     setSelectedCourse(course);
     setIsModalOpen(true);
   };
 
-  // Handle closing the course view modal
+  // Function to handle closing the course confirmation modal.
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedCourse(null);
   };
 
-  // Effect to redirect to login if not authenticated
+  // useEffect hook to redirect to the login page if the user is not authenticated.
   useEffect(() => {
     if (!isPending && !session) {
       router.push('/login');
     }
   }, [session, isPending, router]);
 
-  // Display a loading spinner while session is being checked
+  // Display a loading spinner while the session is being checked or if there is no session.
   if (isPending || !session) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -125,12 +134,14 @@ export default function DashboardPage() {
     );
   }
 
+  // Render the main dashboard UI.
   return (
     <>
       <main className="mx-auto max-w-7xl space-y-8 py-12 sm:px-6 lg:px-8">
-        {/* Quick Actions */}
+        {/* Section for quick actions */}
         <h2 className="text-secondary mb-6 text-4xl font-bold">Quick Actions</h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Card for 'Ask a Doubt' */}
           <Card
             isPressable
             onPress={() => router.push('/doubts')}
@@ -147,6 +158,7 @@ export default function DashboardPage() {
             </CardBody>
           </Card>
 
+          {/* Card for 'Compete' */}
           <Card
             isPressable
             onPress={() => router.push('/compete')}
@@ -163,6 +175,7 @@ export default function DashboardPage() {
             </CardBody>
           </Card>
 
+          {/* Card for 'View Your Streak' */}
           <Card
             isPressable
             onPress={() => router.push('/streak')}
@@ -183,24 +196,26 @@ export default function DashboardPage() {
         <h2 className="text-secondary mb-6 text-4xl font-bold">
           Discover Courses
         </h2>
-        {/* Course Catalog */}
+        {/* Section to display the list of courses grouped by category */}
         <div className="space-y-12">
-          {courseCategories.map((category) => (
-            <div key={category.category}>
+          {categorizedCourses.map((categoryGroup) => (
+            <div key={categoryGroup.category}>
               <h2 className="text-foreground mb-6 text-2xl font-bold">
-                {category.category}
+                {categoryGroup.category}
               </h2>
               <ScrollShadow
                 orientation="horizontal"
                 className="flex space-x-6 p-2"
               >
-                {category.courses.map((course) => (
+                {/* Map over the courses in the category and render a card for each course */}
+                {categoryGroup.courses.map((course) => (
                   <div key={course._id} className="w-80 shrink-0">
                     <Card className="bg-background outline-content2 hover:bg-content1 outline-1 hover:outline-0">
                       <CardHeader></CardHeader>
                       <CardBody>
                         <h2 className="text-xl">{course.name}</h2>
                         <div className="mt-4 flex flex-wrap gap-2">
+                          {/* Map over the course tags and render a chip for each tag */}
                           {course.tags.map((tag) => (
                             <Chip key={tag} variant="bordered" color="secondary">
                               {tag}
@@ -222,11 +237,11 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </ScrollShadow>
-              <div className="flex space-x-6 overflow-x-auto pb-4"></div>
             </div>
           ))}
         </div>
       </main>
+      {/* Modal for confirming course navigation */}
       {selectedCourse && (
         <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
           <ModalContent>
@@ -240,7 +255,8 @@ export default function DashboardPage() {
               <Button variant="light" onPress={handleCloseModal}>
                 Cancel
               </Button>
-              <NextLink href={`/course/${selectedCourse._id}`} passHref>
+              {/* Link to the course page using the course slug */}
+              <NextLink href={`/course/${selectedCourse.slug}`} passHref>
                 <Button
                   color="primary"
                   onPress={handleCloseModal}
