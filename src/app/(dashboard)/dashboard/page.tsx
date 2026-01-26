@@ -1,7 +1,7 @@
 'use client';
-
+// Import necessary modules and components
 import NextLink from 'next/link';
-import { useSession, signOut } from '@/lib/auth-client';
+import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -17,53 +17,47 @@ import {
   ModalContent,
   ModalHeader,
   ModalBody,
-  ModalFooter
+  ModalFooter,
 } from '@heroui/react';
 import { IconHelp, IconTrophy, IconFlame } from '@tabler/icons-react';
 
+// Define the structure of a Course
 interface Course {
+  _id: string;
   name: string;
   tags: string[];
 }
 
-// Placeholder data for courses
-const courseCategories = [
-  {
-    category: 'Tech',
-    courses: [
-      { name: 'Introduction to Programming', tags: ['Beginner', 'Code'] },
-      { name: 'Advanced Algorithms', tags: ['Advanced', 'Data Structures'] },
-      {
-        name: 'Web Development with Next.js',
-        tags: ['Intermediate', 'Web', 'JavaScript'],
-      },
-      { name: 'Database Design and SQL', tags: ['Beginner', 'Databases'] },
-      { name: 'Machine Learning Foundations', tags: ['Intermediate', 'AI/ML'] },
-      { name: 'Cloud Computing with AWS', tags: ['Intermediate', 'Cloud'] },
-    ],
-  },
+// Define the structure for course categories
+interface CourseCategory {
+  category: string;
+  courses: Course[];
+}
+
+// Placeholder data for non-tech courses
+const staticCourseCategories: CourseCategory[] = [
   {
     category: '11th Grade',
     courses: [
-      { name: 'Physics - Mechanics', tags: ['Physics', '11th'] },
-      { name: 'Chemistry - Organic Basics', tags: ['Chemistry', '11th'] },
-      { name: 'Mathematics - Algebra', tags: ['Math', '11th'] },
+      { _id: '1', name: 'Physics - Mechanics', tags: ['Physics', '11th'] },
+      { _id: '2', name: 'Chemistry - Organic Basics', tags: ['Chemistry', '11th'] },
+      { _id: '3', name: 'Mathematics - Algebra', tags: ['Math', '11th'] },
     ],
   },
   {
     category: '12th Grade',
     courses: [
-      { name: 'Physics - Electromagnetism', tags: ['Physics', '12th'] },
-      { name: 'Chemistry - Advanced Organic', tags: ['Chemistry', '12th'] },
-      { name: 'Mathematics - Calculus', tags: ['Math', '12th'] },
+      { _id: '4', name: 'Physics - Electromagnetism', tags: ['Physics', '12th'] },
+      { _id: '5', name: 'Chemistry - Advanced Organic', tags: ['Chemistry', '12th'] },
+      { _id: '6', name: 'Mathematics - Calculus', tags: ['Math', '12th'] },
     ],
   },
   {
     category: 'B.Com',
     courses: [
-      { name: 'Financial Accounting', tags: ['Commerce', 'B.Com'] },
-      { name: 'Business Law', tags: ['Commerce', 'B.Com'] },
-      { name: 'Principles of Management', tags: ['Management', 'B.Com'] },
+      { _id: '7', name: 'Financial Accounting', tags: ['Commerce', 'B.Com'] },
+      { _id: '8', name: 'Business Law', tags: ['Commerce', 'B.Com'] },
+      { _id: '9', name: 'Principles of Management', tags: ['Management', 'B.Com'] },
     ],
   },
 ];
@@ -73,28 +67,59 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [courseCategories, setCourseCategories] = useState<CourseCategory[]>(
+    [],
+  );
 
+  // Fetch courses from the API on component mount
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        // Fetch courses from the API
+        const response = await fetch('/api/courses');
+        if (!response.ok) {
+          throw new Error('Failed to fetch courses');
+        }
+        const techCourses: Course[] = await response.json();
+
+        // Combine static categories with fetched tech courses
+        setCourseCategories([
+          { category: 'Tech', courses: techCourses },
+          ...staticCourseCategories,
+        ]);
+      } catch (error) {
+        // Log error and set only static categories as a fallback
+        console.error('Error fetching courses:', error);
+        setCourseCategories(staticCourseCategories);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  // Handle opening the course view modal
   const handleViewCourse = (course: Course) => {
     setSelectedCourse(course);
     setIsModalOpen(true);
   };
 
+  // Handle closing the course view modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedCourse(null);
   };
 
+  // Effect to redirect to login if not authenticated
   useEffect(() => {
-    // Redirect to login if not authenticated
     if (!isPending && !session) {
       router.push('/login');
     }
   }, [session, isPending, router]);
 
-  // Loading state
+  // Display a loading spinner while session is being checked
   if (isPending || !session) {
     return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <Spinner />
       </div>
     );
@@ -170,7 +195,7 @@ export default function DashboardPage() {
                 className="flex space-x-6 p-2"
               >
                 {category.courses.map((course) => (
-                  <div key={course.name} className="w-80 shrink-0">
+                  <div key={course._id} className="w-80 shrink-0">
                     <Card className="bg-background outline-content2 hover:bg-content1 outline-1 hover:outline-0">
                       <CardHeader></CardHeader>
                       <CardBody>
@@ -215,7 +240,7 @@ export default function DashboardPage() {
               <Button variant="light" onPress={handleCloseModal}>
                 Cancel
               </Button>
-              <NextLink href="/course/view" passHref>
+              <NextLink href={`/course/${selectedCourse._id}`} passHref>
                 <Button
                   color="primary"
                   onPress={handleCloseModal}
