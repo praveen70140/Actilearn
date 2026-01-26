@@ -60,15 +60,15 @@ class NumericalStrategy implements AnswerCheckStrategy {
 
 class OpenEndedStrategy implements AnswerCheckStrategy {
   check(
-    response: z.infer<typeof responseCodeExecutionSchema.shape.body>,
-    args: z.infer<typeof questionTypeCodeExecutionSchema.shape.arguments>,
-    correctAnswer: z.infer<typeof questionTypeCodeExecutionSchema.shape.answer>,
+    response: z.infer<typeof responseOpenEndedSchema.shape.body>,
+    args: z.infer<typeof questionTypeOpenEndedSchema.shape.arguments>,
+    correctAnswer: z.infer<typeof questionTypeOpenEndedSchema.shape.answer>,
   ): EvaluationStatus {
     if (response === null) return EvaluationStatus.SKIPPED;
 
     // For open ended questions, we can check for keywords or just a minimum length.
     // For now, we'll just check for minimum length.
-    return response.submittedCode.trim().length > 10
+    return response.submittedText.trim().length > 10
       ? EvaluationStatus.CORRECT
       : EvaluationStatus.INCORRECT;
   }
@@ -76,15 +76,15 @@ class OpenEndedStrategy implements AnswerCheckStrategy {
 
 class CodeExecutionStrategy implements AnswerCheckStrategy {
   check(
-    response: z.infer<typeof responseOpenEndedSchema.shape.body>,
-    args: z.infer<typeof questionTypeOpenEndedSchema.shape.arguments>,
-    correctAnswer: z.infer<typeof questionTypeOpenEndedSchema.shape.answer>,
+    response: z.infer<typeof responseCodeExecutionSchema.shape.body>,
+    args: z.infer<typeof questionTypeCodeExecutionSchema.shape.arguments>,
+    correctAnswer: z.infer<typeof questionTypeCodeExecutionSchema.shape.answer>,
   ): EvaluationStatus {
     if (response === null) return EvaluationStatus.SKIPPED;
 
     // For code execution, we can't actually execute the code here.
     // We'll just check if the answer is not empty.
-    return response.submittedText.trim().length > 10
+    return response.submittedCode.trim().length > 10
       ? EvaluationStatus.CORRECT
       : EvaluationStatus.INCORRECT;
   }
