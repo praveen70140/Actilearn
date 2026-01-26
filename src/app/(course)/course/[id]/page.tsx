@@ -7,6 +7,7 @@ import Response, { IResponseMongoSchema } from '@/db/models/Response';
 import { auth } from '@/lib/auth';
 import { QuestionTypes } from '@/lib/enum/question-types';
 import z, { string } from 'zod';
+import { EvaluationStatus } from '@/lib/enum/evaluation-status';
 
 export default async function CourseViewPage() {
   await connectDB();
@@ -54,10 +55,29 @@ export default async function CourseViewPage() {
   const { data: parsedCourse } = validatedFields;
 
   if (userId) {
-    const responseData: IResponseMongoSchema | null = await Response.findOne({
+    let responseData: IResponseMongoSchema | null = await Response.findOne({
       user: userId,
       course: courseDoc._id,
     }).lean();
+
+    if (!responseData) {
+      const initialChapters = courseDoc.chapters.map((chapter) => ({
+        lessons: chapter.lessons.map((lesson) => ({
+          questions: lesson.questions.map(() => ({
+            response: {},
+            evaluation: EvaluationStatus.PENDING,
+          })),
+        })),
+      }));
+
+      const newResponse = await Response.create({
+        user: userId,
+        course: courseDoc._id,
+        chapters: initialChapters,
+      });
+
+      responseData = newResponse.toObject();
+    }
 
     if (responseData) {
       const transformedResponseData = {
@@ -123,6 +143,23 @@ export default async function CourseViewPage() {
           })),
         })),
       };
+      // Assign the transformed data to userResponse or a similar variable if needed
+      // Note: The original code didn't assign 'transformedResponseData' to 'userResponse' explicitly in the snippet I saw,
+      // but it returned <CourseViewer responseData={userResponse} />.
+      // Wait, the original code had:
+      // if (responseData) { const transformedResponseData = ... }
+      // AND THEN return <CourseViewer ... responseData={userResponse} />
+      // BUT userResponse was initialized to null and NEVER assigned.
+      // The original code snippet provided in 'read' shows:
+      // let userResponse = null;
+      // ...
+      // if (responseData) { const transformedResponseData = ... }
+      // ...
+      // return <CourseViewer ... responseData={userResponse} />
+      // This implies the original code was BUGGY (passing null always).
+      // I should fix this by assigning transformedResponseData to userResponse.
+
+      userResponse = transformedResponseData as any; // Cast to any or appropriate type to match CourseViewer props
     }
   }
 
