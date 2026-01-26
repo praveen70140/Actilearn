@@ -6,9 +6,9 @@ interface IQuestionMongoSchema {
   solution: string;
   body: {
     type: number;
+    arguments: any;
+    answer: any;
   };
-  arguments: any;
-  answer: any;
 }
 
 interface ILessonMongoSchema {
@@ -22,10 +22,11 @@ interface IChapterMongoSchema {
   lessons: ILessonMongoSchema[];
 }
 
-interface ICourseMongoSchema {
+export interface ICourseMongoSchema {
+  _id: ObjectId;
   name: string;
   description: string;
-  slug: any;
+  slug: any; // TODO: Define explicit type
   creator: string;
   created: Date;
   isPrivate: boolean;
@@ -38,14 +39,9 @@ const questionMongoSchema = new Schema<IQuestionMongoSchema>({
   questionText: { type: Schema.Types.String, required: true },
   solution: { type: Schema.Types.String, required: true },
   body: {
-    type: {
-      type: {
-        type: Schema.Types.Number,
-        required: true,
-      },
-      arguments: { type: Schema.Types.Mixed, required: true },
-      answer: { type: Schema.Types.Mixed, required: true },
-    },
+    type: { type: Schema.Types.Number, required: true },
+    arguments: { type: Schema.Types.Mixed },
+    answer: { type: Schema.Types.Mixed, required: true },
   },
 });
 

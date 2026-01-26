@@ -1,4 +1,4 @@
-import { array, date, json, object, string, uuid } from 'zod';
+import z, { array, date, json, object, string, uuid } from 'zod';
 import { questionTypeAllSchema } from './questions';
 
 const MIN_NAME_CHAR_COUNT = 10;
@@ -13,11 +13,15 @@ export const questionSchema = object({
 });
 
 export const courseSchema = object({
-  id: uuid('Course ID is required'),
+  // _id is optional because it is only present for persisted courses,
+  // not for transient courses generated in the Doubts page.
+  // It is required for timeline tracking.
+  _id: string().optional(),
   name: string('Course name is required').min(
     MIN_NAME_CHAR_COUNT,
     `Course name must be at least ${MIN_NAME_CHAR_COUNT} characters long`,
   ),
+  slug: uuid('Slug is required').default(() => crypto.randomUUID()),
   description: string('Course description is required'),
   //  Creator is not included as it will be inferred from the user account associated with the uploader
   created: date('Date is required'),

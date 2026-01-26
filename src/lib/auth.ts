@@ -11,6 +11,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  trustHost: true,
   plugins: [nextCookies()], // make sure this is the last plugin in the array
   // Disabled for server side execution
   advanced: { disableOriginCheck: true },

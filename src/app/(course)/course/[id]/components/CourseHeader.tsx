@@ -41,15 +41,15 @@ export function CourseHeader({ onExit }: { onExit: () => void }) {
           <Select
             className="w-56"
             variant="flat"
-            aria-label="Chapter"
+            items={courseData.chapters}
             selectedKeys={currentChapter ? [currentChapter.name] : []}
             onSelectionChange={onChapterChange}
           >
-            {courseData.chapters.map((c) => (
-              <SelectItem key={c.name} textValue={c.name}>
-                {c.name}
+            {(chapter) => (
+              <SelectItem key={chapter.name} textValue={chapter.name}>
+                {chapter.name}
               </SelectItem>
-            ))}
+            )}
           </Select>
         </NavbarItem>
 
@@ -58,14 +58,15 @@ export function CourseHeader({ onExit }: { onExit: () => void }) {
             className="w-56"
             variant="flat"
             aria-label="Lesson"
+            items={currentChapter.lessons}
             selectedKeys={currentLesson ? [currentLesson.name] : []}
             onSelectionChange={onLessonChange}
           >
-            {currentChapter.lessons.map((l) => (
-              <SelectItem key={l.name} textValue={l.name}>
-                {l.name}
+            {(lesson) => (
+              <SelectItem key={lesson.name} textValue={lesson.name}>
+                {lesson.name}
               </SelectItem>
-            ))}
+            )}
           </Select>
         </NavbarItem>
       </NavbarContent>
