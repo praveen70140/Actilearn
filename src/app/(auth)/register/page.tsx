@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Controller, useForm } from 'react-hook-form';
 import { registerUserSchema } from '@/lib/zod/register-user';
@@ -9,8 +9,9 @@ import z from 'zod';
 import { Button, Form, Input } from '@heroui/react';
 import FormError from '@/components/form/form-error';
 import FormSuccess from '@/components/form/form-success';
-import { registerUser } from '@/actions/auth/register-user';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
+import { signUp } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
   const {
@@ -18,7 +19,7 @@ export default function RegisterPage() {
     handleSubmit,
     control,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<z.infer<typeof registerUserSchema>>({
     resolver: zodResolver(registerUserSchema),
     mode: 'onBlur',
@@ -26,35 +27,37 @@ export default function RegisterPage() {
 
   const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
-  const [isPending, startTransition] = useTransition();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
     useState(false);
+  const router = useRouter();
 
   const onSubmit = async (formData: z.infer<typeof registerUserSchema>) => {
     setError('');
     setSuccess('');
 
-    startTransition(async () => {
-      registerUser(formData)
-        .then((data) => {
-          if (data && data.success) {
-            setSuccess(data.success);
-            reset({
-              email: '',
-              name: '',
-              password: '',
-              confirmPassword: '',
-            });
-          }
-          if (data && data.error) {
-            setError(data.error);
-          }
-        })
-        .catch((err: Error) => {
-          setError(err.message);
-        });
-    });
+    await signUp.email(
+      {
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+      },
+      {
+        onSuccess: () => {
+          setSuccess('Account created successfully!');
+          reset({
+            email: '',
+            name: '',
+            password: '',
+            confirmPassword: '',
+          });
+          router.push('/dashboard');
+        },
+        onError: (ctx) => {
+          setError(ctx.error.message);
+        },
+      },
+    );
   };
 
   return (
@@ -186,7 +189,12 @@ export default function RegisterPage() {
         <FormError message={error} />
         <FormSuccess message={success} />
 
-        <Button type="submit" color="primary" fullWidth isDisabled={isPending}>
+        <Button
+          type="submit"
+          color="primary"
+          fullWidth
+          isDisabled={isSubmitting}
+        >
           Create Account
         </Button>
 
