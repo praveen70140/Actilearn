@@ -1,15 +1,22 @@
+
+/**
+ * This file contains the seed data for the "Fullstack Mastery: From Zero to Hero" course.
+ * The data is structured according to the courseSchema from Zod.
+ */
+
 import { courseSchema } from '@/lib/zod/course';
 import { QuestionTypes } from '@/lib/enum/question-types';
 import { z } from 'zod';
 import { codeExecutionLanguages } from '@/lib/constants/code-execution-languages';
 
 export const seedCourseData: z.infer<typeof courseSchema> = {
-  slug: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // New, valid UUID,
+  slug: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
   name: 'Fullstack Mastery: From Zero to Hero',
   description:
     'A comprehensive course that covers everything you need to know to become a fullstack developer, from frontend fundamentals to backend architecture and database management.',
   created: new Date('2024-01-01T00:00:00Z'),
   tags: ['fullstack', 'react', 'typescript', 'backend'],
+
   chapters: [
     {
       name: 'Frontend Core',
@@ -18,17 +25,16 @@ export const seedCourseData: z.infer<typeof courseSchema> = {
           name: 'React Hooks Deep Dive',
           theory: `
 # Mastering React Hooks
-Hooks allow you to use state and other React features without writing a class. They provide a more direct API to the React concepts you already know.
+
+Hooks allow you to use state and other React features without writing a class.
 
 ### The Component Lifecycle
 Understanding when hooks fire is critical for performance and bug prevention.
 
-![React Lifecycle Diagram](test.png)
-
 ### Common Hooks
-1. **useState**: For local state management.
-2. **useEffect**: For side effects (API calls, subscriptions).
-3. **useContext**: For consuming context without nesting.
+1. **useState**
+2. **useEffect**
+3. **useContext**
 
 \`\`\`javascript
 const [count, setCount] = useState(0);
@@ -49,16 +55,14 @@ useEffect(() => {
                 answer: { correctIndex: 1 },
               },
               solution:
-                'useEffect is designed for side effects like data fetching, subscriptions, and manual DOM mutations.',
+                'useEffect is designed for side effects like data fetching, subscriptions, and DOM mutations.',
             },
             {
               questionText:
                 'How many times will useEffect run if dependency array is empty?',
               body: {
                 type: QuestionTypes.NUMERICAL,
-                arguments: {
-                  precision: 0,
-                },
+                arguments: { precision: 0 },
                 answer: { correctNumber: 1 },
               },
               solution:
@@ -69,26 +73,25 @@ useEffect(() => {
                 'Explain the difference between useMemo and useCallback.',
               body: {
                 type: QuestionTypes.OPEN_ENDED,
-                arguments: {
-                  characterCount: null,
-                },
+                arguments: { characterCount: null },
                 answer: {
                   evaluationPrompt:
                     'Explain the difference between useMemo and useCallback.',
                 },
               },
               solution:
-                'useMemo memoizes a computed value, while useCallback memoizes a function reference to prevent unnecessary re-creations.',
+                'useMemo memoizes values, useCallback memoizes function references.',
             },
             {
               questionText:
-                'Write a JavaScript function that takes two numbers and returns their sum. Your function should be named `addNumbers`.',
+                'Write a JavaScript function that takes two numbers and returns their sum.',
               body: {
                 type: QuestionTypes.CODE_EXECUTION,
                 arguments: {
                   languages: [codeExecutionLanguages.javascript.id],
-                  initialCode:
-                    'function addNumbers(a, b) {\n  // Write your code here\n}',
+                  initialCode: `function addNumbers(a, b) {
+  // Write your code here
+}`,
                 },
                 answer: {
                   testCases: [
@@ -98,7 +101,7 @@ useEffect(() => {
                 },
               },
               solution:
-                'The function should take two arguments and return their sum. For example, `addNumbers(2, 3)` should return `5`.',
+                'Return the sum of the two input numbers.',
             },
           ],
         },
@@ -106,15 +109,16 @@ useEffect(() => {
           name: 'Advanced State Management',
           theory: `
 # State Management Strategies
-As applications grow, managing state across multiple components becomes challenging.
 
 ### Lifting State Up
-The simplest way to share state is to move it to the closest common ancestor. 
+Move shared state to the closest common ancestor.
 
 ### Context API
-For global settings like **Theme** or **Auth**, the Context API avoids "prop drilling."
+Avoid prop drilling for global state.
+
 <video src="test.mp4" />
-> **Tip:** Don't put high-frequency updates in Context, as it can trigger re-renders across the entire tree.
+
+> Tip: Avoid high-frequency updates in Context.
           `,
           questions: [
             {
@@ -132,89 +136,7 @@ For global settings like **Theme** or **Auth**, the Context API avoids "prop dri
                 answer: { correctIndex: 1 },
               },
               solution:
-                'Lifting state up allows multiple components to share and stay in sync with the same state.',
-            },
-            {
-              questionText: 'When would you choose Context API over Redux?',
-              body: {
-                type: QuestionTypes.OPEN_ENDED,
-                arguments: {
-                  characterCount: null,
-                },
-                answer: {
-                  evaluationPrompt:
-                    'When would you choose Context API over Redux?',
-                },
-              },
-              solution:
-                'Context API is suitable for low-frequency global state like themes or auth, while Redux fits complex, high-frequency updates.',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      name: 'Backend Fundamentals',
-      lessons: [
-        {
-          name: 'HTTP & RESTful APIs',
-          theory: `
-# HTTP & RESTful Design
-REST (Representational State Transfer) is an architectural style for providing standards between computer systems on the web.
-
-### Key HTTP Methods
-- **GET**: Retrieve data.
-- **POST**: Create data.
-- **PUT**: Replace data (Idempotent).
-- **PATCH**: Partially update data.
-- **DELETE**: Remove data.
-
-### Status Codes
-- **200**: OK
-- **201**: Created
-- **400**: Bad Request
-- **401**: Unauthorized
-- **404**: Not Found
-- **500**: Internal Server Error
-          `,
-          questions: [
-            {
-              questionText: 'In standard HTTP, which port is used for HTTPS?',
-              body: {
-                type: QuestionTypes.NUMERICAL,
-                arguments: {
-                  precision: 0,
-                },
-                answer: { correctNumber: 443 },
-              },
-              solution: 'Port 443 is the default port for HTTPS traffic.',
-            },
-            {
-              questionText: 'Which HTTP method is idempotent?',
-              body: {
-                type: QuestionTypes.MULTIPLE_CHOICE,
-                arguments: {
-                  options: ['POST', 'PATCH', 'PUT', 'CONNECT'],
-                },
-                answer: { correctIndex: 2 },
-              },
-              solution:
-                'PUT is idempotent because multiple identical requests result in the same state.',
-            },
-            {
-              questionText: 'What does statelessness mean in REST APIs?',
-              body: {
-                type: QuestionTypes.OPEN_ENDED,
-                arguments: {
-                  characterCount: null,
-                },
-                answer: {
-                  evaluationPrompt:
-                    'What does statelessness mean in REST APIs?',
-                },
-              },
-              solution:
-                'Statelessness means each request contains all information needed to process it, and the server stores no client session.',
+                'It allows multiple components to share synchronized state.',
             },
           ],
         },
@@ -222,3 +144,4 @@ REST (Representational State Transfer) is an architectural style for providing s
     },
   ],
 };
+

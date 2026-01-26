@@ -1,15 +1,30 @@
+
+/**
+ * This script is used to seed the database with initial course data.
+ * It connects to MongoDB, then upserts a list of predefined courses,
+ * which means it will update existing courses or insert new ones if they don't exist.
+ */
+
 import dotenv from 'dotenv';
 import { resolve } from 'path';
 
-// Load environment variables from .env file
+// Load environment variables from .env.local and .env files.
 dotenv.config({ path: resolve(process.cwd(), '.env.local') });
 dotenv.config({ path: resolve(process.cwd(), '.env') });
 
 import connectDB from '@/lib/mongoose';
 import Course from '@/db/models/Course';
 import { seedCourseData } from '@/app/(course)/course/[id]/data';
-import { QuestionTypes } from '@/lib/enum/question-types';
+import { seedCourseData2 } from '@/app/(course)/course/[id]/data2';
 
+import { seedCourseData3 } from '@/app/(course)/course/[id]/data3';
+
+// An array containing all the course data to be seeded.
+const coursesToSeed = [seedCourseData, seedCourseData2, seedCourseData3];
+
+/**
+ * The main seed function that connects to the database and seeds the courses.
+ */
 async function seed() {
   console.log('🌱 Starting seed...');
 
@@ -17,31 +32,23 @@ async function seed() {
     await connectDB();
     console.log('✅ Connected to MongoDB');
 
-    // Transform courseData to match Schema requirements
-    // - id -> slug
-    // - add isPrivate (default false)
-    // - add creator (placeholder)
-    // - ensure question body types are correct
+    for (const courseData of coursesToSeed) {
+      const courseToInsert = {
+        ...courseData,
+        slug: courseData.slug,
+        isPrivate: false,
+        creator: 'system',
+      };
 
-    const courseToInsert = {
-      ...seedCourseData,
-      slug: seedCourseData.slug,
-      isPrivate: false,
-      creator: 'system',
-      // Mongoose might not like 'id' field if it's not in schema, so we rely on spread to include known fields
-      // and explicitly set the ones that map differently.
-      // However, spread will include 'id', which isn't in schema. Mongoose strict mode (default true) will ignore it.
-    };
+      const result = await Course.findOneAndUpdate(
+        { slug: courseData.slug },
+        courseToInsert,
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      );
 
-    // Upsert the course based on slug (id)
-    const result = await Course.findOneAndUpdate(
-      { slug: seedCourseData.slug },
-      courseToInsert,
-      { upsert: true, new: true, setDefaultsOnInsert: true },
-    );
-
-    console.log(`✅ Course "${result.name}" seeded successfully!`);
-    console.log(`🆔 ID (Slug): ${result.slug}`);
+      console.log(`✅ Course "${result.name}" seeded successfully!`);
+      console.log(`🆔 ID (Slug): ${result.slug}`);
+    }
   } catch (error) {
     console.error('❌ Error seeding course:', error);
     process.exit(1);
@@ -50,4 +57,6 @@ async function seed() {
   }
 }
 
+// Execute the seed function.
 seed();
+

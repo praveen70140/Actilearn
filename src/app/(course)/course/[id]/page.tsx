@@ -9,11 +9,22 @@ import { QuestionTypes } from '@/lib/enum/question-types';
 import z, { string } from 'zod';
 import { EvaluationStatus } from '@/lib/enum/evaluation-status';
 
-export default async function CourseViewPage() {
+import { redirect } from 'next/navigation';
+
+export default async function CourseViewPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   await connectDB();
 
-  const courseDoc: ICourseMongoSchema | null = await Course.findOne().lean();
-  if (!courseDoc) return <div>Course not found</div>;
+  const courseDoc: ICourseMongoSchema | null = await Course.findOne({
+    slug: id,
+  }).lean();
+  if (!courseDoc) {
+    redirect('/dashboard?error=course_not_found');
+  }
 
   // Manual serialization of BSON types (UUID and ObjectId)
   const serializedCourse: z.infer<typeof courseSchema> = {
@@ -145,23 +156,8 @@ export default async function CourseViewPage() {
           })),
         })),
       };
-      // Assign the transformed data to userResponse or a similar variable if needed
-      // Note: The original code didn't assign 'transformedResponseData' to 'userResponse' explicitly in the snippet I saw,
-      // but it returned <CourseViewer responseData={userResponse} />.
-      // Wait, the original code had:
-      // if (responseData) { const transformedResponseData = ... }
-      // AND THEN return <CourseViewer ... responseData={userResponse} />
-      // BUT userResponse was initialized to null and NEVER assigned.
-      // The original code snippet provided in 'read' shows:
-      // let userResponse = null;
-      // ...
-      // if (responseData) { const transformedResponseData = ... }
-      // ...
-      // return <CourseViewer ... responseData={userResponse} />
-      // This implies the original code was BUGGY (passing null always).
-      // I should fix this by assigning transformedResponseData to userResponse.
-
-      userResponse = transformedResponseData as any; // Cast to any or appropriate type to match CourseViewer props
+      // Assign the transformed data to userResponse
+      userResponse = transformedResponseData as any;
     }
   }
 
