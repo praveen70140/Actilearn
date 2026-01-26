@@ -97,7 +97,7 @@ export function Leaderboard() {
         {/* Button for 1-hour streak */}
         <Button
           size="sm"
-          color={selectedStreak === '1h' ? 'primary' : 'content1'}
+          color={selectedStreak === '1h' ? 'primary' : 'default'}
           onClick={() => setSelectedStreak('1h')}
           className={`rounded-full border-2 ${selectedStreak === '1h' ? 'border-primary' : 'border-content2'}`}
         >
@@ -106,7 +106,7 @@ export function Leaderboard() {
         {/* Button for 2-hour streak */}
         <Button
           size="sm"
-          color={selectedStreak === '2h' ? 'primary' : 'content1'}
+          color={selectedStreak === '2h' ? 'primary' : 'default'}
           onClick={() => setSelectedStreak('2h')}
           className={`rounded-full border-2 ${selectedStreak === '2h' ? 'border-primary' : 'border-content2'}`}
         >
@@ -115,7 +115,7 @@ export function Leaderboard() {
         {/* Button for 4-hour streak */}
         <Button
           size="sm"
-          color={selectedStreak === '4h' ? 'primary' : 'content1'}
+          color={selectedStreak === '4h' ? 'primary' : 'default'}
           onClick={() => setSelectedStreak('4h')}
           className={`rounded-full border-2 ${selectedStreak === '4h' ? 'border-primary' : 'border-content2'}`}
         >
@@ -123,12 +123,14 @@ export function Leaderboard() {
         </Button>
       </div>
 
-      <div className="rounded-xl border border-[#313244] bg-surface p-4">
+      <div className="bg-surface rounded-xl border border-[#313244] p-4">
         <div className="space-y-4">
           {currentLeaderboardData.map(({ rank, name, score, isUser }) => (
-            <div key={rank} className={getRowClass(rank, isUser)}>
+            <div key={rank} className={getRowClass(rank, !!isUser)}>
               <div className="text-left">{rank}</div>
-              <div className={`text-center ${isUser ? 'font-bold' : ''}`}>{name}</div>
+              <div className={`text-center ${isUser ? 'font-bold' : ''}`}>
+                {name}
+              </div>
               <div className="text-right">{score}</div>
             </div>
           ))}

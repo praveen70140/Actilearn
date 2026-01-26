@@ -63,7 +63,7 @@ export default function DoubtsPage() {
         >
           X
         </Button>
-        <CourseViewer courseData={course} />
+        <CourseViewer courseData={course} responseData={null} />
       </div>
     );
   }

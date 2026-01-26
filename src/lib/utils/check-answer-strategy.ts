@@ -111,7 +111,7 @@ class OpenEndedStrategy implements AnswerCheckStrategy {
       Your evaluation should be based on the conceptual correctness of the answer.
       The answer does not need to be a verbatim match to any specific solution, but it must correctly address the question.
 
-      The question is: "${correctAnswer.question}"
+      The question is: "${correctAnswer.evaluationPrompt}"
       The user's answer is: "${response.submittedText}"
       
       Please evaluate if the user's answer is correct.
