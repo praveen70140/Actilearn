@@ -80,6 +80,18 @@ export default function DashboardPage() {
           fetch('/api/courses/categories'),
         ]);
 
+        if (!coursesResponse.ok) {
+          console.error(
+            'Failed to fetch courses:',
+            await coursesResponse.text(),
+          );
+        }
+        if (!categoriesResponse.ok) {
+          console.error(
+            'Failed to fetch categories:',
+            await categoriesResponse.text(),
+          );
+        }
         if (!coursesResponse.ok || !categoriesResponse.ok) {
           throw new Error('Failed to fetch data');
         }

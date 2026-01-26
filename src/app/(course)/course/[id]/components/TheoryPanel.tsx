@@ -27,22 +27,13 @@ export function TheoryPanel() {
     img: ({ src, alt, ...props }) => {
       const finalSrc = resolveStorageUrl(src);
       return (
-        <div className="group my-8 block">
-          <div className="relative overflow-hidden rounded-xl border border-[#313244] bg-[#181825]">
-            <img
-              {...props}
-              src={finalSrc}
-              alt={alt || 'Lesson Image'}
-              loading="lazy"
-              className="mx-auto block h-auto max-h-[600px] max-w-full object-contain"
-            />
-          </div>
-          {alt && (
-            <span className="mt-3 block text-center text-xs text-[#9399b2]">
-              {alt}
-            </span>
-          )}
-        </div>
+        <img
+          {...props}
+          src={finalSrc}
+          alt={alt || 'Lesson Image'}
+          loading="lazy"
+          className="my-8 mx-auto block h-auto max-h-[600px] max-w-full object-contain rounded-xl border border-[#313244] bg-[#181825]"
+        />
       );
     },
 
@@ -50,17 +41,15 @@ export function TheoryPanel() {
     video: ({ src, ...props }) => {
       const finalSrc = resolveStorageUrl(src);
       return (
-        <div className="my-8 overflow-hidden rounded-xl border border-[#313244] bg-black shadow-2xl">
-          <video
-            {...props}
-            src={finalSrc}
-            controls
-            className="aspect-video w-full"
-            controlsList="nodownload" // Optional: security feature
-          >
-            Your browser does not support the video tag.
-          </video>
-        </div>
+        <video
+          {...props}
+          src={finalSrc}
+          controls
+          className="my-8 aspect-video w-full overflow-hidden rounded-xl border border-[#313244] bg-black shadow-2xl"
+          controlsList="nodownload"
+        >
+          Your browser does not support the video tag.
+        </video>
       );
     },
 
