@@ -116,7 +116,9 @@ Move shared state to the closest common ancestor.
 ### Context API
 Avoid prop drilling for global state.
 
-<video src="test.mp4" />
+<video controls src="https://6u6tzjrbyk.ufs.sh/f/SexAxnJR3C67a5yzLWk0yFTvIGOlPkrw7ZEhMdAu5iQzcgDx"></video>
+
+![Example Photo](https://6u6tzjrbyk.ufs.sh/f/SexAxnJR3C67gNy3FVKCJ6LtSBfeHPWYsvIg20XMAQzwc4kF)
 
 > Tip: Avoid high-frequency updates in Context.
           `,

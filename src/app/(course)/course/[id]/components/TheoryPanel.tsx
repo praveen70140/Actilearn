@@ -26,7 +26,6 @@ export function TheoryPanel() {
     // IMAGE SUPPORT
     img: ({ src, alt, ...props }) => {
       const finalSrc = resolveStorageUrl(src);
-      return null;
       return (
         <div className="group my-8 block">
           <div className="relative overflow-hidden rounded-xl border border-[#313244] bg-[#181825]">
@@ -50,7 +49,6 @@ export function TheoryPanel() {
     // VIDEO SUPPORT (Handles <video> tags in markdown)
     video: ({ src, ...props }) => {
       const finalSrc = resolveStorageUrl(src);
-      return null;
       return (
         <div className="my-8 overflow-hidden rounded-xl border border-[#313244] bg-black shadow-2xl">
           <video

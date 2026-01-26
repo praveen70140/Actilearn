@@ -18,7 +18,6 @@ export default function StreakPage() {
               <StreakHeader />
               <PodiumBanner />
               <StreakSelection />
-              <ActivityDistribution />
             </div>
           </div>
 
