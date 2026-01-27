@@ -9,7 +9,7 @@
 import NextLink from 'next/link';
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button,
   Card,
@@ -52,7 +52,7 @@ interface CategorizedCourses {
 
 import { useSearchParams } from 'next/navigation';
 
-function DashboardContent() {
+export default function DashboardPage() {
   // useSession hook to get session data and authentication status.
   const { data: session, isPending } = useSession();
   // useRouter hook for programmatic navigation.
@@ -318,19 +318,5 @@ function DashboardContent() {
         </ModalContent>
       </Modal>
     </>
-  );
-}
-
-export default function DashboardPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="bg-background flex min-h-screen items-center justify-center">
-          <Spinner />
-        </div>
-      }
-    >
-      <DashboardContent />
-    </Suspense>
   );
 }

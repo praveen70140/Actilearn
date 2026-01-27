@@ -112,7 +112,6 @@ class OpenEndedStrategy implements AnswerCheckStrategy {
     // Initialize the Gemini model. We use 'gemini-1.5-flash' for this task.
     const model = genAI.getGenerativeModel({ model: 'models/gemma-3-27b-it' });
 
-
     // The `correctAnswer` for an open-ended question includes the question text.
     // This is used to provide context to the AI model.
     const prompt = `

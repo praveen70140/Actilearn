@@ -13,7 +13,7 @@ export function TheoryPanel() {
     currentLessonIndex,
   } = useCourseContext();
   const STORAGE_BASE_URL =
-    process.env.NEXT_PUBLIC_STORAGE_URL;
+    process.env.NEXT_PUBLIC_STORAGE_URL || 'http://localhost:9000/actilearn';
 
   // Helper to resolve URLs (same logic as image)
   const resolveStorageUrl = (src: string) => {
