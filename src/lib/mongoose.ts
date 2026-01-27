@@ -1,11 +1,10 @@
 import mongoose from 'mongoose';
 
-// Check for MongoDB URI
-// if (!process.env.MONGODB_URI) {
-//   throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
-// }
+const uri = process.env.MONGODB_URI;
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/actilearn';
+if (!uri) {
+  throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
+}
 
 /**
  * Global is used here to maintain a cached connection across hot reloads
@@ -45,7 +44,7 @@ async function connectDB() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(uri!, opts).then((mongoose) => {
       return mongoose;
     });
   }

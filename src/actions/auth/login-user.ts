@@ -3,6 +3,7 @@
 import { auth } from '@/lib/auth';
 import { loginUserSchema } from '@/lib/zod/login-user';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import z from 'zod';
 
 export const loginUser = async (formData: z.infer<typeof loginUserSchema>) => {
@@ -17,18 +18,31 @@ export const loginUser = async (formData: z.infer<typeof loginUserSchema>) => {
   }
   const { data } = validatedFields;
 
-  const result = await auth.api.signInEmail({
-    body: { ...data },
-    asResponse: true,
-  });
-  if (!result.ok) {
-    return {
-      error: 'Login failed. Please check your credentials.',
-    };
-  } else {
-    // Successful login - redirect to dashboard
+  try {
+    const result = await auth.api.signInEmail({
+      body: { ...data },
+      headers: await headers(),
+      asResponse: true,
+    });
 
-    redirect('/dashboard');
-    return { success: JSON.stringify(result) };
+    if (!result.ok) {
+      let errorMessage = 'Login failed. Please check your credentials.';
+      try {
+        const errorData = await result.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // ignore
+      }
+      return {
+        error: errorMessage,
+      };
+    }
+  } catch (error: any) {
+    return {
+      error: error.message || 'An unexpected error occurred during login.',
+    };
   }
+
+  // Successful login - redirect to dashboard
+  redirect('/dashboard');
 };

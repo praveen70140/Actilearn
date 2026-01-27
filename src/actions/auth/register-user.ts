@@ -1,9 +1,10 @@
 'use server';
 
-import { signUp } from '@/lib/auth-client';
+import { auth } from '@/lib/auth';
 import { DEFAULT_LOGGEDUSER_REDIRECT } from '@/lib/constants';
 import { registerUserSchema } from '@/lib/zod/register-user';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import z from 'zod';
 
 export const registerUser = async (
@@ -22,17 +23,34 @@ export const registerUser = async (
     data: { confirmPassword, ...data },
   } = validatedFields;
 
-  const result = await signUp.email({
-    ...data,
-    callbackURL: '/dashboard',
-  });
-  if (result.error) {
+  try {
+    const result = await auth.api.signUpEmail({
+      body: {
+        ...data,
+      },
+      headers: await headers(),
+      asResponse: true,
+    });
+
+    if (!result.ok) {
+      let errorMessage = 'Registration failed. Please try again.';
+      try {
+        const errorData = await result.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // ignore json parse error
+      }
+      return {
+        error: errorMessage,
+      };
+    }
+  } catch (error: any) {
     return {
-      error: result.error.message || 'Registration failed. Please try again.',
+      error:
+        error.message || 'An unexpected error occurred during registration',
     };
-  } else {
-    // Successful registration - redirect to dashboard (user is auto-signed in)
-    redirect(DEFAULT_LOGGEDUSER_REDIRECT);
-    return { success: 'Signed up successfully' };
   }
+
+  // Successful registration - redirect to dashboard (user is auto-signed in)
+  redirect(DEFAULT_LOGGEDUSER_REDIRECT);
 };
