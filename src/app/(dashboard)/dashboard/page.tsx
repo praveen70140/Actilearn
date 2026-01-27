@@ -31,6 +31,7 @@ import { IconHelp, IconTrophy, IconFlame } from '@tabler/icons-react';
 interface Course {
   _id: string;
   slug: string;
+  description: string;
   name: string;
   tags: string[];
 }
@@ -268,27 +269,42 @@ export default function DashboardPage() {
       </main>
       {/* Modal for confirming course navigation */}
       {selectedCourse && (
-        <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+        <Modal isOpen={isModalOpen} onClose={handleCloseModal} size="2xl">
           <ModalContent>
-            <ModalHeader>Continue to Course?</ModalHeader>
+            <ModalHeader>Course Overview</ModalHeader>
             <ModalBody>
+              <h3 className="text-primary-400 text-3xl font-bold">
+                {selectedCourse.name}
+              </h3>
               <p>
-                You are about to view the course &quot;{selectedCourse.name}
-                &quot;.
+                {/* You are about to view the course &quot;{selectedCourse.name}
+                &quot;. */}
+                {selectedCourse.description}
               </p>
+              <div className="flex space-x-2">
+                {selectedCourse.tags.map((tag) => (
+                  <Chip variant="flat" size="lg" color="secondary" key={tag}>
+                    {tag}
+                  </Chip>
+                ))}
+              </div>
             </ModalBody>
             <ModalFooter>
-              <Button variant="light" onPress={handleCloseModal}>
-                Cancel
+              <Button
+                variant="bordered"
+                color="secondary"
+                onPress={handleCloseModal}
+              >
+                Exit
               </Button>
               {/* Link to the course page using the course slug */}
               <NextLink href={`/course/${selectedCourse.slug}`} passHref>
                 <Button
                   color="primary"
+                  variant="solid"
                   onPress={handleCloseModal}
-                  className="bg-accent text-accent-foreground hover:bg-accent/90"
                 >
-                  Continue
+                  Attempt Course
                 </Button>
               </NextLink>
             </ModalFooter>
