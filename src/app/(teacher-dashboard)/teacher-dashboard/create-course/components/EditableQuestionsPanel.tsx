@@ -3,13 +3,10 @@ import {
   Button,
   Card,
   CardBody,
+  CardHeader,
+  CardFooter,
   Select,
   SelectItem,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
   Textarea,
   Input,
   Tooltip,
@@ -34,242 +31,188 @@ export function EditableQuestionsPanel() {
     setCurrentQuestionIndex,
   } = useCourseCreateContext();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newQuestionText, setNewQuestionText] = useState('');
-  const [newQuestionType, setNewQuestionType] = useState<QuestionTypes>(
-    QuestionTypes.OPEN_ENDED,
-  );
-  const [mcqOptions, setMcqOptions] = useState<string[]>(['', '']);
-  const [mcqCorrectIndex, setMcqCorrectIndex] = useState<number | null>(null);
-
   const currentLesson =
     courseData.chapters[currentChapterIndex]?.lessons[currentLessonIndex];
   const currentQuestion = (currentLesson?.questions || [])[currentQuestionIndex];
 
-  const addQuestion = (lesson: LessonType) => {
-    // Open modal to add question
-    setIsModalOpen(true);
-  };
-  
-  const handleSaveQuestion = () => {
-    setCourseData((prevCourse) => {
-      const newChapters = [...prevCourse.chapters];
-      const chapter = newChapters[currentChapterIndex];
-      if (!chapter) return prevCourse;
-      const lesson = chapter.lessons[currentLessonIndex];
-      if (!lesson) return prevCourse;
+  // Helper to update the current question in the deeply nested state
+  const updateQuestion = (
+    updater: (q: LessonType['questions'][number]) => LessonType['questions'][number],
+  ) => {
+    setCourseData((prev) => {
+      const newChapters = [...prev.chapters];
+      const chapter = { ...newChapters[currentChapterIndex] };
+      const lessons = [...chapter.lessons];
+      const lesson = { ...lessons[currentLessonIndex] };
+      const questions = [...(lesson.questions || [])];
 
-      let newQuestion;
-
-      if (newQuestionType === QuestionTypes.MULTIPLE_CHOICE) {
-        if (mcqOptions.some(opt => opt.trim() === '') || mcqOptions.length < 2 || mcqCorrectIndex === null) {
-          // Here you might want to show an error to the user
-          console.error("MCQ requires at least 2 options and a correct answer.");
-          return prevCourse;
-        }
-        newQuestion = {
-          questionText: newQuestionText,
-          body: {
-            type: QuestionTypes.MULTIPLE_CHOICE,
-            arguments: {
-              options: mcqOptions,
-            },
-            answer: {
-              correctIndex: mcqCorrectIndex,
-            },
-          },
-          solution: `The correct answer is option ${mcqCorrectIndex + 1}.`,
-        };
-      } else { // OPEN_ENDED
-        newQuestion = {
-          questionText: newQuestionText,
-          body: {
-            type: QuestionTypes.OPEN_ENDED,
-            arguments: {
-              characterCount: null,
-            },
-            answer: {
-              evaluationPrompt: 'The user has provided an answer, please evaluate it.',
-            },
-          },
-          solution: 'A sample solution text would go here.',
-        };
+      if (questions[currentQuestionIndex]) {
+        questions[currentQuestionIndex] = updater(
+          questions[currentQuestionIndex],
+        );
+        lesson.questions = questions;
+        lessons[currentLessonIndex] = lesson;
+        chapter.lessons = lessons;
+        newChapters[currentChapterIndex] = chapter;
+        return { ...prev, chapters: newChapters };
       }
+      return prev;
+    });
+  };
+
+  const handleAddQuestion = () => {
+    const newQuestion = {
+      questionText: 'New Question',
+      body: {
+        type: QuestionTypes.OPEN_ENDED,
+        arguments: { characterCount: null },
+        answer: { evaluationPrompt: 'Evaluate the answer.' },
+      },
+      solution: '',
+    };
+
+    const newQuestionIndex = (currentLesson?.questions || []).length;
+
+    setCourseData((prev) => {
+      const newChapters = [...prev.chapters];
+      const chapter = { ...newChapters[currentChapterIndex] };
+      const lessons = [...chapter.lessons];
+      const lesson = { ...lessons[currentLessonIndex] };
+      const questions = [...(lesson.questions || [])];
       
-      const existingQuestions = lesson.questions || [];
-      lesson.questions = [...existingQuestions, newQuestion];
-      
-      return { ...prevCourse, chapters: newChapters };
+      questions.push(newQuestion);
+      lesson.questions = questions;
+      lessons[currentLessonIndex] = lesson;
+      chapter.lessons = lessons;
+      newChapters[currentChapterIndex] = chapter;
+      return { ...prev, chapters: newChapters };
     });
 
-    // Reset state and close modal
-    setIsModalOpen(false);
-    setNewQuestionText('');
-    setNewQuestionType(QuestionTypes.OPEN_ENDED);
-    setMcqOptions(['', '']);
-    setMcqCorrectIndex(null);
+    setCurrentQuestionIndex(newQuestionIndex);
   };
+  
+  const handleQuestionTypeChange = (newType: QuestionTypes) => {
+    updateQuestion(q => {
+        if (newType === QuestionTypes.MULTIPLE_CHOICE) {
+            return {
+                ...q,
+                body: {
+                    type: QuestionTypes.MULTIPLE_CHOICE,
+                    arguments: { options: ['Option 1', 'Option 2'] },
+                    answer: { correctIndex: 0 }
+                }
+            };
+        } else { // OPEN_ENDED
+            return {
+                ...q,
+                body: {
+                    type: QuestionTypes.OPEN_ENDED,
+                    arguments: { characterCount: null },
+                    answer: { evaluationPrompt: 'Evaluate the answer.' }
+                }
+            };
+        }
+    });
+  }
 
   if (!currentLesson) return null;
+  if (!currentQuestion) {
+     return (
+        <div className="bg-default-50 flex h-full w-1/2 flex-col items-center justify-center p-8">
+            <Card className="bg-background border-content2 p-8 shadow-2xl text-center">
+                <p className="mb-4">There are no questions in this lesson yet.</p>
+                <Button onPress={handleAddQuestion} color="primary">
+                    <IconPlus size={16} className="mr-2" />
+                    Add the First Question
+                </Button>
+            </Card>
+        </div>
+     );
+  }
+
+  const isMCQ = currentQuestion.body.type === QuestionTypes.MULTIPLE_CHOICE;
 
   return (
     <div className="bg-default-50 flex h-full w-1/2 flex-col overflow-y-auto p-8">
-      <Card className="bg-background border-content2 flex-1 border p-4 shadow-2xl">
-        <CardBody className="gap-4 px-4">
-          <div className="flex items-center justify-start space-x-2">
-            <Button
-              isIconOnly
-              size="lg"
-              variant="light"
-              onPress={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
-              isDisabled={currentQuestionIndex === 0}
-            >
-              <IconArrowLeft size={24} className="stroke-secondary" />
+      <Card className="bg-background border-content2 flex-1 border p-4 shadow-2xl flex flex-col">
+        <CardHeader className="flex items-center justify-start space-x-2">
+            <Button isIconOnly size="lg" variant="light" onPress={() => setCurrentQuestionIndex(currentQuestionIndex - 1)} isDisabled={currentQuestionIndex === 0}>
+                <IconArrowLeft size={24} className="stroke-secondary" />
             </Button>
             <Select
-              className="w-48"
-              variant="underlined"
-              size="lg"
-              selectedKeys={new Set([currentQuestionIndex.toString()])}
-              onSelectionChange={(keys) =>
-                setCurrentQuestionIndex(Number(Array.from(keys)[0]))
-              }
-              classNames={{ value: 'text-xl' }}
+                className="w-48" variant="underlined" size="lg"
+                selectedKeys={new Set([currentQuestionIndex.toString()])}
+                onSelectionChange={(keys) => setCurrentQuestionIndex(Number(Array.from(keys)[0]))}
+                classNames={{ value: 'text-xl' }}
             >
-              {(currentLesson.questions || []).map((_, i) => (
-                <SelectItem key={i.toString()} textValue={`Question ${i + 1}`}>
-                  Question {i + 1}
-                </SelectItem>
-              ))}
+                {(currentLesson.questions || []).map((_, i) => (
+                    <SelectItem key={i.toString()} textValue={`Question ${i + 1}`}>
+                        Question {i + 1}
+                    </SelectItem>
+                ))}
             </Select>
-            <Button
-              isIconOnly
-              size="lg"
-              variant="light"
-              onPress={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
-              isDisabled={
-                currentQuestionIndex >= (currentLesson.questions?.length || 0) - 1
-              }
-            >
-              <IconArrowRight size={24} className="stroke-secondary" />
+            <Button isIconOnly size="lg" variant="light" onPress={() => setCurrentQuestionIndex(currentQuestionIndex + 1)} isDisabled={currentQuestionIndex >= (currentLesson.questions?.length || 0) - 1}>
+                <IconArrowRight size={24} className="stroke-secondary" />
             </Button>
-            <Button
-              isIconOnly
-              size="lg"
-              variant="light"
-              onPress={() => addQuestion(currentLesson)}
-            >
-              <IconPlus size={24} className="stroke-secondary" />
+            <Button isIconOnly size="lg" variant="light" onPress={handleAddQuestion}>
+                <IconPlus size={24} className="stroke-secondary" />
             </Button>
-          </div>
-
-          <p className="leading-relaxed">{currentQuestion?.questionText}</p>
-        </CardBody>
-      </Card>
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <ModalContent>
-          <ModalHeader>Add New Question</ModalHeader>
-          <ModalBody>
-            <div className="flex items-center gap-4 mb-4">
-              <span className="text-sm">Question Type:</span>
+        </CardHeader>
+        <CardBody className="gap-6 px-4 overflow-y-auto flex-1">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium">Question Type:</span>
               <Dropdown>
                 <DropdownTrigger>
-                  <Button variant="bordered">
-                    {newQuestionType === QuestionTypes.OPEN_ENDED
-                      ? 'Open Ended'
-                      : 'Multiple Choice'}
-                  </Button>
+                  <Button variant="bordered">{isMCQ ? 'Multiple Choice' : 'Open Ended'}</Button>
                 </DropdownTrigger>
                 <DropdownMenu
-                  aria-label="Question Type"
-                  disallowEmptySelection
-                  selectionMode="single"
-                  selectedKeys={[QuestionTypes[newQuestionType]]}
-                  onSelectionChange={(keys) =>
-                    setNewQuestionType(
-                      QuestionTypes[
-                        Array.from(keys)[0] as keyof typeof QuestionTypes
-                      ],
-                    )
-                  }
+                  aria-label="Question Type" disallowEmptySelection selectionMode="single"
+                  selectedKeys={[QuestionTypes[currentQuestion.body.type]]}
+                  onSelectionChange={(keys) => handleQuestionTypeChange(QuestionTypes[Array.from(keys)[0] as keyof typeof QuestionTypes])}
                 >
                   <DropdownItem key="OPEN_ENDED">Open Ended</DropdownItem>
-                  <DropdownItem key="MULTIPLE_CHOICE">
-                    Multiple Choice
-                  </DropdownItem>
+                  <DropdownItem key="MULTIPLE_CHOICE">Multiple Choice</DropdownItem>
                 </DropdownMenu>
               </Dropdown>
             </div>
-            <Textarea
-              value={newQuestionText}
-              onChange={(e) => setNewQuestionText(e.target.value)}
-              placeholder="Question Text"
-              className="mb-4"
-            />
-            {newQuestionType === QuestionTypes.MULTIPLE_CHOICE && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Options</h3>
-                {mcqOptions.map((option, index) => (
-                  <div key={index} className="flex items-center gap-2 mb-2">
-                    <Input
-                      value={option}
-                      onChange={(e) => {
-                        const newOptions = [...mcqOptions];
+
+            <Textarea label="Question Text" placeholder="Enter the question prompt" value={currentQuestion.questionText} onChange={e => updateQuestion(q => ({...q, questionText: e.target.value}))} />
+
+            {isMCQ && 'arguments' in currentQuestion.body && (
+              <div className="flex flex-col gap-4">
+                <h3 className="text-lg font-semibold">Options</h3>
+                {(currentQuestion.body.arguments as {options: string[]}).options.map((option, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input fullWidth value={option} onChange={e => updateQuestion(q => {
+                        const newOptions = [...(q.body.arguments as any).options];
                         newOptions[index] = e.target.value;
-                        setMcqOptions(newOptions);
-                      }}
-                      placeholder={`Option ${index + 1}`}
-                    />
+                        return {...q, body: {...q.body, arguments: {...q.body.arguments, options: newOptions}}};
+                    })} placeholder={`Option ${index + 1}`} />
                     <Tooltip content="Mark as correct">
-                      <Button
-                        isIconOnly
-                        variant={mcqCorrectIndex === index ? 'solid' : 'light'}
-                        color={mcqCorrectIndex === index ? 'success' : 'default'}
-                        onPress={() => setMcqCorrectIndex(index)}
-                      >
-                        ✓
-                      </Button>
+                      <Button isIconOnly variant={'answer' in currentQuestion.body && (currentQuestion.body.answer as any).correctIndex === index ? 'solid' : 'light'} color={'answer' in currentQuestion.body && (currentQuestion.body.answer as any).correctIndex === index ? 'success' : 'default'} onPress={() => updateQuestion(q => ({...q, body: {...q.body, answer: {correctIndex: index}}}))}>✓</Button>
                     </Tooltip>
                     <Tooltip content="Remove option">
-                       <Button
-                        isIconOnly
-                        variant="light"
-                        color="danger"
-                        onPress={() => {
-                          const newOptions = mcqOptions.filter((_, i) => i !== index);
-                          setMcqOptions(newOptions);
-                          if (mcqCorrectIndex === index) {
-                            setMcqCorrectIndex(null);
-                          } else if (mcqCorrectIndex && mcqCorrectIndex > index) {
-                            setMcqCorrectIndex(mcqCorrectIndex - 1);
-                          }
-                        }}
-                      >
-                        ✕
-                      </Button>
+                       <Button isIconOnly variant="light" color="danger" onPress={() => updateQuestion(q => {
+                           const newOptions = (q.body.arguments as any).options.filter((_: any, i: number) => i !== index);
+                           let newCorrectIndex = (q.body.answer as any).correctIndex;
+                           if (index === newCorrectIndex) newCorrectIndex = 0;
+                           else if (index < newCorrectIndex) newCorrectIndex -= 1;
+                           return {...q, body: {...q.body, arguments: {...q.body.arguments, options: newOptions}, answer: {correctIndex: newCorrectIndex}}};
+                       })} isDisabled={(currentQuestion.body.arguments as any).options.length <= 2}>✕</Button>
                     </Tooltip>
                   </div>
                 ))}
-                <Button
-                  onPress={() => setMcqOptions([...mcqOptions, ''])}
-                  size="sm"
-                  variant="flat"
-                >
-                  Add Option
-                </Button>
+                <Button onPress={() => updateQuestion(q => {
+                    const newOptions = [...(q.body.arguments as any).options, ''];
+                    return {...q, body: {...q.body, arguments: {...q.body.arguments, options: newOptions}}};
+                })} size="sm" variant="flat">Add Option</Button>
               </div>
             )}
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={() => setIsModalOpen(false)} variant="light">
-              Cancel
-            </Button>
-            <Button onClick={handleSaveQuestion} color="primary">
-              Save Question
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+
+            <Textarea label="Solution Explanation" placeholder="Explain the solution..." value={currentQuestion.solution || ''} onChange={e => updateQuestion(q => ({...q, solution: e.target.value}))} />
+
+        </CardBody>
+      </Card>
     </div>
   );
 }

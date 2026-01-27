@@ -21,6 +21,7 @@ import {
   IconEdit
 } from '@tabler/icons-react';
 import { useCourseCreateContext } from '../context/CourseCreateContext';
+import { useState, useRef, useEffect } from 'react';
 
 export function CreateCourseHeader() {
   const {
@@ -33,6 +34,17 @@ export function CreateCourseHeader() {
     currentLessonIndex,
     setCurrentLessonIndex,
   } = useCourseCreateContext();
+  
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.select();
+    }
+  }, [isEditingTitle]);
+
+
 
   // Helper to update current chapter name
   const updateChapterName = (name: string) => {
@@ -61,22 +73,12 @@ export function CreateCourseHeader() {
       isBordered
       className="bg-background/70 backdrop-blur-md border-b border-divider h-20"
     >
-      {/* 1. COURSE TITLE */}
-      <NavbarContent justify="start" className="max-w-fit">
-        <Input
-          variant="flat"
-          label="Course Title"
-          labelPlacement="outside"
-          value={courseData.name}
-          onChange={(e) => setCourseData({ ...courseData, name: e.target.value })}
-          placeholder="Enter course name..."
-          className="w-48 lg:w-64"
-        />
+      <NavbarContent justify="start">
+        {/* Placeholder for potential branding or other start-aligned elements */}
       </NavbarContent>
 
-      {/* 2. CHAPTER & LESSON MANAGEMENT */}
+      {/* 2. CHAPTER & LESSON MANAGEMENT - NOW CENTRALIZED */}
       <NavbarContent justify="center" className="gap-6">
-
         {/* CHAPTER SECTION */}
         <div className="flex items-end gap-1">
           <Input
@@ -166,8 +168,43 @@ export function CreateCourseHeader() {
         </div>
       </NavbarContent>
 
-      {/* 3. ACTIONS */}
-      <NavbarContent justify="end">
+      {/* 3. ACTIONS & COURSE TITLE (moved from start) */}
+      <NavbarContent justify="end" className="gap-6">
+        {isEditingTitle ? (
+          <Input
+            ref={titleInputRef}
+            variant="flat"
+            label="Course Title"
+            labelPlacement="outside"
+            value={courseData.name}
+            onChange={(e) =>
+              setCourseData({ ...courseData, name: e.target.value })
+            }
+            onBlur={() => setIsEditingTitle(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') setIsEditingTitle(false);
+            }}
+            className="w-48 lg:w-64"
+          />
+        ) : (
+          <div
+            className="w-48 lg:w-64 h-[58px] flex flex-col justify-center cursor-pointer group"
+            onClick={() => setIsEditingTitle(true)}
+          >
+            <label className="text-xs text-default-500 origin-top-left">
+              Course Title
+            </label>
+            <div className="flex items-center gap-2">
+              <span className="text-base font-medium truncate">
+                {courseData.name || 'Untitled Course'}
+              </span>
+              <IconEdit
+                size={16}
+                className="text-default-400 opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            </div>
+          </div>
+        )}
         <Button
           color="primary"
           variant="shadow"
