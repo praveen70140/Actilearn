@@ -38,8 +38,30 @@ export default function LoginPage() {
         password: formData.password,
       },
       {
-        onSuccess: () => {
-          router.push('/dashboard');
+        onSuccess: async (ctx) => {
+          console.log('=== LOGIN SUCCESS ===');
+          console.log('Login context:', ctx);
+          console.log('User ID from context:', ctx.data?.user?.id);
+
+          try {
+            // Check user role via API
+            console.log('Calling teacher role check API...');
+            const response = await fetch('/api/check-teacher-role');
+            const data = await response.json();
+
+            console.log('API response:', data);
+
+            if (response.ok) {
+              console.log('Redirecting to:', data.redirectUrl);
+              router.push(data.redirectUrl);
+            } else {
+              console.log('API error, defaulting to dashboard');
+              router.push('/dashboard');
+            }
+          } catch (error) {
+            console.error('Error checking teacher role:', error);
+            router.push('/dashboard');
+          }
         },
         onError: (ctx) => {
           setError(ctx.error.message);
