@@ -11,7 +11,10 @@ import { submitAnswer } from '@/actions/submit-answer';
 import { EvaluationStatus } from '@/lib/enum/evaluation-status';
 import { FormProvider, useForm } from 'react-hook-form';
 import z from 'zod';
-import { responseAllSchema } from '@/lib/zod/responses';
+import {
+  responseAllSchema,
+  responseCodeExecutionSchema,
+} from '@/lib/zod/responses';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ResponseType } from '../CourseViewer';
 import FormError from '@/components/form/form-error';
@@ -44,10 +47,10 @@ export function QuestionsPanel() {
 
   const methods = useForm<z.infer<typeof responseAllSchema>>({
     resolver: zodResolver(responseAllSchema),
-    defaultValues: {
-      body: {},
-      type: QuestionTypes.NUMERICAL,
-    },
+    // defaultValues: {
+    //   body: {},
+    //   type: -1,
+    // },
     mode: 'onChange',
   });
 
@@ -56,17 +59,36 @@ export function QuestionsPanel() {
 
   const formType = methods.watch('type');
 
+  const [once, setOnce] = useState(true);
+
+  useEffect(() => {}, []);
+
   useEffect(() => {
+    setError(undefined);
     methods.reset({
       type: currentQuestion?.body.type as any,
-      body: responses as any,
+      body: { ...(currentQuestionResponse?.response?.body ?? null) },
     });
-  }, [currentQuestion, currentQuestionResponse]);
+  }, [currentQuestion, methods.reset]);
+  // useEffect(() => {
+  //   setError(undefined);
+  //   methods.reset({
+  //     type: currentQuestion?.body.type as any,
+  //     body: currentQuestionResponse?.response,
+  //   });
+  // }, []);
+
+  // useEffect(() => {
+  //   setError(undefined);
+  //   methods.reset({
+  //     type: currentQuestion?.body.type as any,
+  //     body: currentQuestionResponse?.response,
+  //   });
+  // }, [currentQuestionResponse, methods.reset]);
 
   const handleSubmit = async () => {
-    console.log('clicked');
-
-    const rawFormData = methods.getValues();
+    setError(undefined);
+    const rawFormData = methods.watch();
 
     if (!rawFormData.body || !currentQuestion) return;
 
@@ -83,7 +105,7 @@ export function QuestionsPanel() {
         currentChapterIndex,
         currentLessonIndex,
         currentQuestionIndex,
-        methods.getValues(),
+        formData,
       );
 
       if (result.error) {
@@ -92,12 +114,14 @@ export function QuestionsPanel() {
       }
 
       setResponse((prev: ResponseType) => {
-        const newResponse = JSON.parse(
+        const newResponse: NonNullable<ResponseType> = JSON.parse(
           JSON.stringify(prev || { chapters: [] }),
         );
+
         if (!newResponse.chapters[currentChapterIndex]) {
           newResponse.chapters[currentChapterIndex] = { lessons: [] };
         }
+
         if (
           !newResponse.chapters[currentChapterIndex].lessons[currentLessonIndex]
         ) {
@@ -105,12 +129,22 @@ export function QuestionsPanel() {
             currentLessonIndex
           ] = { questions: [] };
         }
+
         newResponse.chapters[currentChapterIndex].lessons[
           currentLessonIndex
         ].questions[currentQuestionIndex] = {
           response: formData.body,
-          evaluation: result.data?.evaluationStatus,
+          evaluation: result.data?.evaluationStatus ?? EvaluationStatus.SKIPPED,
         };
+
+        if (currentQuestion.body.type === QuestionTypes.CODE_EXECUTION) {
+          methods.setValue('body.testCaseOutput', result.data?.result);
+          newResponse.chapters[currentChapterIndex].lessons[
+            currentLessonIndex
+          ].questions[currentQuestionIndex].response.testCaseOutput =
+            result.data?.result;
+        }
+
         return newResponse;
       });
     });
@@ -121,14 +155,18 @@ export function QuestionsPanel() {
 
   if (!currentQuestion) return null;
 
-  const feedback = isSubmitted
-    ? {
-        status: isCorrect ? ('correct' as const) : ('incorrect' as const),
-        message: isCorrect
-          ? 'Well done! That is the correct answer.'
-          : 'That is not quite right. Please try again or view the solution.',
-      }
-    : null;
+  const feedback =
+    isSubmitted &&
+    [EvaluationStatus.CORRECT, EvaluationStatus.INCORRECT].includes(
+      submissionStatus,
+    )
+      ? {
+          status: isCorrect ? ('correct' as const) : ('incorrect' as const),
+          message: isCorrect
+            ? 'Well done! That is the correct answer.'
+            : 'That is not quite right. Please try again or view the solution.',
+        }
+      : null;
 
   return (
     <FormProvider {...methods}>

@@ -101,56 +101,7 @@ export default async function CourseViewPage({
             ...lesson,
             questions: lesson.questions.map(
               (questionResponse, questionIndex) => {
-                if (
-                  questionResponse.response &&
-                  Array.isArray(questionResponse.response) &&
-                  questionResponse.response.length > 0
-                ) {
-                  const questionInCourse =
-                    parsedCourse.chapters[chapterIndex]?.lessons[lessonIndex]
-                      ?.questions?.[questionIndex];
-                  if (
-                    questionInCourse &&
-                    typeof questionResponse.response[0] !== 'object'
-                  ) {
-                    const answer = questionResponse.response[0];
-                    let responseBody;
-                    switch (questionInCourse.body.type) {
-                      case QuestionTypes.MULTIPLE_CHOICE:
-                        responseBody = { selectedIndex: Number(answer) };
-                        break;
-                      case QuestionTypes.NUMERICAL:
-                        responseBody = { submittedNumber: Number(answer) };
-                        break;
-                      case QuestionTypes.OPEN_ENDED:
-                        responseBody = { submittedText: String(answer) };
-                        break;
-                      case QuestionTypes.CODE_EXECUTION:
-                        if (typeof answer === 'string') {
-                          responseBody = {
-                            submittedCode: answer,
-                            languageSelected: 0,
-                            testCaseOutput: [],
-                          };
-                        } else {
-                          responseBody = answer;
-                        }
-                        break;
-                      default:
-                        responseBody = answer;
-                    }
-                    return {
-                      ...questionResponse,
-                      response: [
-                        {
-                          type: questionInCourse.body.type,
-                          body: responseBody,
-                        },
-                      ],
-                    };
-                  }
-                }
-                return questionResponse;
+                return { ...questionResponse };
               },
             ),
           })),

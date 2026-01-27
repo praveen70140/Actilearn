@@ -87,7 +87,7 @@ export const CodingType = ({ question, isDisabled }: Props) => {
     if (!testCaseResponses) {
       setValue(
         'body.testCaseOutput',
-        [...Array(10).keys()].map((e) => ''),
+        [...Array(testCases.length).keys()].map((e) => ''),
       );
     }
   }, []);
@@ -167,6 +167,7 @@ export const CodingType = ({ question, isDisabled }: Props) => {
               <Editor
                 height="100%"
                 defaultLanguage={''}
+                defaultValue={value}
                 language={currentLanguageName}
                 value={value}
                 onChange={(e) => onChange(e || '')}
@@ -197,6 +198,7 @@ export const CodingType = ({ question, isDisabled }: Props) => {
       </div>
 
       {/* Terminals */}
+      {/* TODO: Retain test case outputs from previous attempts */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Textarea
           label="Input Terminal"

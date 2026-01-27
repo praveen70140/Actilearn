@@ -54,13 +54,11 @@ export async function submitAnswer(
   const strategy = answerCheckStrategyMap.get(question.body.type);
   if (!strategy) return { error: 'Strategy not found' };
 
-  const evaluationStatus: EvaluationStatus = await strategy.check(
+  const { evaluation: evaluationStatus, result } = await strategy.check(
     formData.body,
     question.body.arguments,
     question.body.answer,
   );
-
-  console.log('status: ', evaluationStatus);
 
   // 4. Update Response using actual ObjectIds
   let response = await Response.findOne({
@@ -94,5 +92,5 @@ export async function submitAnswer(
   response.markModified('chapters');
   await response.save();
 
-  return { success: true, data: { evaluationStatus } };
+  return { success: true, data: { evaluationStatus, result } };
 }

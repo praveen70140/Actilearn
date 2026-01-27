@@ -16,6 +16,7 @@ import {
   questionTypeOpenEndedSchema,
 } from '../zod/questions';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { runTestCases } from '@/actions/code/run-test-cases';
 
 // We are using the Gemini API to evaluate open-ended questions.
 // The model being used is 'gemini-1.5-flash', which is also used in other parts of the application (e.g., course generation).
@@ -34,7 +35,7 @@ interface AnswerCheckStrategy {
     response: z.infer<typeof responseBaseSchema.shape.body>,
     args: z.infer<typeof questionTypeBaseSchema.shape.arguments>,
     correctAnswer: z.infer<typeof questionTypeBaseSchema.shape.answer>,
-  ): Promise<EvaluationStatus>;
+  ): Promise<{ evaluation: EvaluationStatus; result?: any }>;
 }
 
 /**
@@ -49,14 +50,19 @@ class MultipleChoiceStrategy implements AnswerCheckStrategy {
     correctAnswer: z.infer<
       typeof questionTypeMultipleChoiceSchema.shape.answer
     >,
-  ): Promise<EvaluationStatus> {
+  ): Promise<{ evaluation: EvaluationStatus; result: null }> {
     // If the response is null, the user skipped the question.
-    if (response === null) return EvaluationStatus.SKIPPED;
+    if (response === null)
+      return { evaluation: EvaluationStatus.SKIPPED, result: null };
 
     // Check if the selected index matches the correct index.
-    return response.selectedIndex === correctAnswer.correctIndex
-      ? EvaluationStatus.CORRECT
-      : EvaluationStatus.INCORRECT;
+    return {
+      result: null,
+      evaluation:
+        response.selectedIndex === correctAnswer.correctIndex
+          ? EvaluationStatus.CORRECT
+          : EvaluationStatus.INCORRECT,
+    };
   }
 }
 
@@ -70,19 +76,20 @@ class NumericalStrategy implements AnswerCheckStrategy {
     response: z.infer<typeof responseNumericalSchema.shape.body>,
     args: z.infer<typeof questionTypeNumericalSchema.shape.arguments>,
     correctAnswer: z.infer<typeof questionTypeNumericalSchema.shape.answer>,
-  ): Promise<EvaluationStatus> {
+  ): Promise<{ evaluation: EvaluationStatus; result: null }> {
     // If the response is null, the user skipped the question.
-    if (response === null) return EvaluationStatus.SKIPPED;
-
-    // For debugging purposes, log the response and correct answer.
-    console.log('lol1: ', response);
-    console.log('lol2: ', correctAnswer);
+    if (response === null)
+      return { evaluation: EvaluationStatus.SKIPPED, result: null };
 
     // Compare the numbers after formatting them to the required precision.
-    return response.submittedNumber.toFixed(args.precision) ===
-      correctAnswer.correctNumber.toFixed(args.precision)
-      ? EvaluationStatus.CORRECT
-      : EvaluationStatus.INCORRECT;
+    return {
+      evaluation:
+        response.submittedNumber.toFixed(args.precision) ===
+        correctAnswer.correctNumber.toFixed(args.precision)
+          ? EvaluationStatus.CORRECT
+          : EvaluationStatus.INCORRECT,
+      result: null,
+    };
   }
 }
 
@@ -96,9 +103,10 @@ class OpenEndedStrategy implements AnswerCheckStrategy {
     response: z.infer<typeof responseOpenEndedSchema.shape.body>,
     args: z.infer<typeof questionTypeOpenEndedSchema.shape.arguments>,
     correctAnswer: z.infer<typeof questionTypeOpenEndedSchema.shape.answer>,
-  ): Promise<EvaluationStatus> {
+  ): Promise<{ evaluation: EvaluationStatus; result: null }> {
     // If the response is null, the user skipped the question.
-    if (response === null) return EvaluationStatus.SKIPPED;
+    if (response === null)
+      return { evaluation: EvaluationStatus.SKIPPED, result: null };
 
     // The user wants to use Gemini to evaluate the answer.
     // Initialize the Gemini model. We use 'gemini-1.5-flash' for this task.
@@ -111,7 +119,7 @@ class OpenEndedStrategy implements AnswerCheckStrategy {
       Your evaluation should be based on the conceptual correctness of the answer.
       The answer does not need to be a verbatim match to any specific solution, but it must correctly address the question.
 
-      The question is: "${correctAnswer.question}"
+      The question is: "${correctAnswer.evaluationPrompt}"
       The user's answer is: "${response.submittedText}"
       
       Please evaluate if the user's answer is correct.
@@ -124,23 +132,23 @@ class OpenEndedStrategy implements AnswerCheckStrategy {
       // Generate content using the AI model with the constructed prompt.
       const result = await model.generateContent(prompt);
       // Process the AI's response.
-      const aiResponse = result.response.text().trim().toUpperCase();
+      const aiResponse = result?.response.text().trim().toUpperCase();
 
       // For debugging purposes, log the raw response from the AI.
       console.log('Raw AI Response for Open-Ended Evaluation:', aiResponse);
 
       // Return the evaluation status based on the AI's response.
       if (aiResponse === 'CORRECT') {
-        return EvaluationStatus.CORRECT;
+        return { evaluation: EvaluationStatus.CORRECT, result: null };
       } else {
-        return EvaluationStatus.INCORRECT;
+        return { evaluation: EvaluationStatus.INCORRECT, result: null };
       }
     } catch (error) {
       // If there is an error with the AI evaluation, log the error.
       console.error('Error evaluating open ended answer with AI:', error);
       // If the AI evaluation fails, we mark the response as PENDING.
       // This indicates that the evaluation could not be completed and may need to be retried.
-      return EvaluationStatus.PENDING;
+      return { evaluation: EvaluationStatus.PENDING, result: null };
     }
   }
 }
@@ -156,16 +164,22 @@ class CodeExecutionStrategy implements AnswerCheckStrategy {
     response: z.infer<typeof responseCodeExecutionSchema.shape.body>,
     args: z.infer<typeof questionTypeCodeExecutionSchema.shape.arguments>,
     correctAnswer: z.infer<typeof questionTypeCodeExecutionSchema.shape.answer>,
-  ): Promise<EvaluationStatus> {
+  ): Promise<{ evaluation: EvaluationStatus; result: any | null }> {
     // If the response is null, the user skipped the question.
-    if (response === null) return EvaluationStatus.SKIPPED;
+    if (response === null)
+      return { evaluation: EvaluationStatus.PENDING, result: null };
 
     // This is a placeholder check. In a real scenario, this would involve
     // a more complex process of running the code and checking the output.
     // For now, we just check if the code is longer than 10 characters.
-    return response.submittedCode.trim().length > 10
-      ? EvaluationStatus.CORRECT
-      : EvaluationStatus.INCORRECT;
+    const testCaseResult = await runTestCases(response, args, correctAnswer);
+
+    if (testCaseResult.success) {
+      return {
+        result: testCaseResult.data.submissions,
+        evaluation: testCaseResult.data?.evaluation,
+      };
+    } else return { evaluation: EvaluationStatus.PENDING, result: null };
   }
 }
 

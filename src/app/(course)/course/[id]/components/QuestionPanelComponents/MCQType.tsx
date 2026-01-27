@@ -37,7 +37,6 @@ export const MCQType = ({ question, isDisabled }: Props) => {
           onBlur={onBlur}
           classNames={{ wrapper: 'gap-4' }}
         >
-          <p>{value}</p>
           {options?.map((opt: string, idx: number) => (
             <Radio
               key={idx}
