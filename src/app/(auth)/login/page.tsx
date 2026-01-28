@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { loginUserSchema } from '@/lib/zod/login-user';
 import { Controller, useForm } from 'react-hook-form';
@@ -10,16 +10,14 @@ import { Button, Form, Input } from '@heroui/react';
 import { IconEye, IconEyeClosed } from '@tabler/icons-react';
 import FormError from '@/components/form/form-error';
 import FormSuccess from '@/components/form/form-success';
-import { loginUser } from '@/actions/auth/login-user';
 import { useRouter } from 'next/navigation';
+import { signIn } from '@/lib/auth-client';
 
 export default function LoginPage() {
   const {
-    register,
     handleSubmit,
     control,
-    reset,
-    formState: { errors },
+    formState: { isSubmitting },
   } = useForm<z.infer<typeof loginUserSchema>>({
     resolver: zodResolver(loginUserSchema),
     mode: 'onBlur',
@@ -27,7 +25,6 @@ export default function LoginPage() {
 
   const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
-  const [isPending, startTransition] = useTransition();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const router = useRouter();
 
@@ -35,21 +32,42 @@ export default function LoginPage() {
     setError('');
     setSuccess('');
 
-    startTransition(async () => {
-      loginUser(formData)
-        .then((data) => {
-          if (data && data.success) {
-            setSuccess(data.success);
+    await signIn.email(
+      {
+        email: formData.email,
+        password: formData.password,
+      },
+      {
+        onSuccess: async (ctx) => {
+          console.log('=== LOGIN SUCCESS ===');
+          console.log('Login context:', ctx);
+          console.log('User ID from context:', ctx.data?.user?.id);
+
+          try {
+            // Check user role via API
+            console.log('Calling teacher role check API...');
+            const response = await fetch('/api/check-teacher-role');
+            const data = await response.json();
+
+            console.log('API response:', data);
+
+            if (response.ok) {
+              console.log('Redirecting to:', data.redirectUrl);
+              router.push(data.redirectUrl);
+            } else {
+              console.log('API error, defaulting to dashboard');
+              router.push('/dashboard');
+            }
+          } catch (error) {
+            console.error('Error checking teacher role:', error);
             router.push('/dashboard');
           }
-          if (data && data.error) {
-            setError(data.error);
-          }
-        })
-        .catch((err: Error) => {
-          setError(err.message);
-        });
-    });
+        },
+        onError: (ctx) => {
+          setError(ctx.error.message);
+        },
+      },
+    );
   };
 
   return (
@@ -122,7 +140,12 @@ export default function LoginPage() {
         <FormError message={error} />
         <FormSuccess message={success} />
 
-        <Button type="submit" color="primary" fullWidth isDisabled={isPending}>
+        <Button
+          type="submit"
+          color="primary"
+          fullWidth
+          isDisabled={isSubmitting}
+        >
           Sign In
         </Button>
 

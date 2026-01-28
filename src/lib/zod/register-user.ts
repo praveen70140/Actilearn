@@ -1,4 +1,4 @@
-import { email, object, string } from 'zod';
+import { boolean, email, object, string } from 'zod';
 
 export const registerUserSchema = object({
   name: string({ error: 'Name is required' }).min(
@@ -24,6 +24,7 @@ export const registerUserSchema = object({
     8,
     'Password must be at least 8 characters long',
   ),
+  isTeacher: boolean().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   error: 'Passwords must match',
 });

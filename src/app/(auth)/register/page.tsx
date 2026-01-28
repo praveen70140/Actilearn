@@ -6,7 +6,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { registerUserSchema } from '@/lib/zod/register-user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import { Button, Form, Input } from '@heroui/react';
+import { Button, Form, Input, Checkbox } from '@heroui/react';
 import FormError from '@/components/form/form-error';
 import FormSuccess from '@/components/form/form-success';
 import { registerUser } from '@/actions/auth/register-user';
@@ -22,6 +22,13 @@ export default function RegisterPage() {
   } = useForm<z.infer<typeof registerUserSchema>>({
     resolver: zodResolver(registerUserSchema),
     mode: 'onBlur',
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      isTeacher: false,
+    },
   });
 
   const [error, setError] = useState<string | undefined>('');
@@ -45,6 +52,7 @@ export default function RegisterPage() {
               name: '',
               password: '',
               confirmPassword: '',
+              isTeacher: false,
             });
           }
           if (data && data.error) {
@@ -178,6 +186,28 @@ export default function RegisterPage() {
                 </Button>
               }
             />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="isTeacher"
+          render={({
+            field: { name, value, onChange, onBlur, ref },
+            fieldState: { invalid, error },
+          }) => (
+            <Checkbox
+              name={name}
+              isSelected={value || false}
+              onValueChange={onChange}
+              onBlur={onBlur}
+              ref={ref}
+              isInvalid={invalid}
+              validationBehavior="aria"
+              color="secondary"
+            >
+              I am a teacher
+            </Checkbox>
           )}
         />
 
