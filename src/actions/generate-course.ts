@@ -3,6 +3,11 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { courseSchema } from '@/lib/zod/course';
 import { z } from 'zod';
+import connectDB from '@/lib/mongoose';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
+import Course, { ICourseMongoSchema } from '@/db/models/Course';
+import { Types } from 'mongoose';
 
 // --- CONFIGURATION ---
 // Set to true to use the mock response below and save tokens
@@ -11,6 +16,13 @@ const USE_MOCK_AI = false;
 // ---------------------
 
 export async function generateCourseFromDoubt(doubt: string) {
+  await connectDB();
+
+  const session = await auth.api.getSession({ headers: await headers() });
+  const userId = session?.user?.id;
+
+  if (!userId) return { error: 'User not authenticated' };
+
   console.log('--- [1] STARTING COURSE GENERATION ---');
   console.log('User Doubt:', doubt);
 
@@ -21,7 +33,8 @@ export async function generateCourseFromDoubt(doubt: string) {
       console.log('--- [MOCK] USING SAVED WORKING JSON RESPONSE ---');
       text = JSON.stringify({
         name: 'HTML Fundamentals',
-        description: 'A concise introduction to the core concepts of HTML for web development.',
+        description:
+          'A concise introduction to the core concepts of HTML for web development.',
         tags: ['HTML', 'Web Development', 'Frontend'],
         chapters: [
           {
@@ -29,26 +42,34 @@ export async function generateCourseFromDoubt(doubt: string) {
             lessons: [
               {
                 name: 'HTML Basics & Structure',
-                theory: '## What is HTML?\n\nHTML (HyperText Markup Language) is the standard markup language for creating web pages. It provides the structure and content of a webpage. Browsers read HTML files and render them into visible web pages.\n\n## Basic HTML Structure\n\nEvery HTML document has a basic structure:\n\n```html\n<!DOCTYPE html>\n<html>\n<head>\n  <title>Page Title</title>\n</head>\n<body>\n  <h1>My First Heading</h1>\n  <p>My first paragraph.</p>\n</body>\n</html>\n```\n\n* `<!DOCTYPE html>`: Declares the document type.\n* `<html>`: The root element.\n* `<head>`: Contains meta-information.\n* `<title>`: Specifies a title for the page.\n* `<body>`: Contains visible content.',
+                theory:
+                  '## What is HTML?\n\nHTML (HyperText Markup Language) is the standard markup language for creating web pages. It provides the structure and content of a webpage. Browsers read HTML files and render them into visible web pages.\n\n## Basic HTML Structure\n\nEvery HTML document has a basic structure:\n\n```html\n<!DOCTYPE html>\n<html>\n<head>\n  <title>Page Title</title>\n</head>\n<body>\n  <h1>My First Heading</h1>\n  <p>My first paragraph.</p>\n</body>\n</html>\n```\n\n* `<!DOCTYPE html>`: Declares the document type.\n* `<html>`: The root element.\n* `<head>`: Contains meta-information.\n* `<title>`: Specifies a title for the page.\n* `<body>`: Contains visible content.',
                 questions: [
                   {
-                    questionText: 'Which tag is used to define the title of an HTML document?',
-                    solution: "The `<title>` tag is placed within the `<head>` section of an HTML document and specifies the title that appears in the browser's title bar or tab.",
+                    questionText:
+                      'Which tag is used to define the title of an HTML document?',
+                    solution:
+                      "The `<title>` tag is placed within the `<head>` section of an HTML document and specifies the title that appears in the browser's title bar or tab.",
                     body: {
                       type: 0,
                       arguments: {
-                        options: ['`<head>`', '`<title>`', '`<body>`', '`<h1>`']
+                        options: [
+                          '`<head>`',
+                          '`<title>`',
+                          '`<body>`',
+                          '`<h1>`',
+                        ],
                       },
                       answer: {
-                        correctIndex: 1
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+                        correctIndex: 1,
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       });
     } else {
       const apiKey = process.env.GEMINI_API_KEY;
@@ -58,7 +79,9 @@ export async function generateCourseFromDoubt(doubt: string) {
       }
 
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: 'models/gemma-3-27b-it' });
+      const model = genAI.getGenerativeModel({
+        model: 'models/gemma-3-27b-it',
+      });
 
       // UPDATED PROMPT: Removed "Exactly 1" limits, added multiple items to example structure
       const prompt = `
@@ -148,7 +171,8 @@ REQUIRED JSON STRUCTURE EXAMPLE:
   ]
 }
 `;
-      `; `; console.log('--- [2] SENDING PROMPT TO GEMMA-3 ---');
+      `; `;
+      console.log('--- [2] SENDING PROMPT TO GEMMA-3 ---');
       const result = await model.generateContent(prompt);
       const response = await result.response;
       text = response.text();
@@ -162,19 +186,17 @@ REQUIRED JSON STRUCTURE EXAMPLE:
 
     if (!jsonMatch) {
       console.error('ERROR: Could not find JSON object in response');
-      throw new Error("Invalid response format.");
+      throw new Error('Invalid response format.');
     }
 
     const cleanJson = jsonMatch[0];
 
     console.log('--- [5] PARSING JSON ---');
-    const parsedContent = JSON.parse(cleanJson);
+    const parsedContent: ICourseMongoSchema = JSON.parse(cleanJson);
 
     console.log('--- [6] ENRICHING DATA WITH SYSTEM FIELDS ---');
-    const finalData = {
+    const finalData: ICourseMongoSchema = {
       ...parsedContent,
-      id: crypto.randomUUID(),
-      _id: crypto.randomUUID(),
       created: new Date(),
     };
 
@@ -184,9 +206,17 @@ REQUIRED JSON STRUCTURE EXAMPLE:
     console.log('--- [7] VALIDATING AGAINST PROJECT SCHEMA ---');
     const validatedCourse = courseSchema.parse(finalData);
 
-    console.log('--- [8] SUCCESS: GENERATION COMPLETE ---');
-    return { success: true, data: validatedCourse };
+    const finalCourse = {
+      ...validatedCourse,
+      _id: new Types.ObjectId(),
+      isPrivate: true,
+      whitelist: [new Types.ObjectId(session.user.id)],
+    };
 
+    await Course.create(finalCourse);
+
+    console.log('--- [8] SUCCESS: GENERATION COMPLETE ---');
+    return { success: true, data: finalCourse as ICourseMongoSchema };
   } catch (error) {
     console.error('--- [X] GENERATION ERROR ---');
 
@@ -199,7 +229,7 @@ REQUIRED JSON STRUCTURE EXAMPLE:
 
     return {
       success: false,
-      error: 'Failed to generate a valid course. Check server logs.',
+      error: 'Failed to generate a valid course: ' + error,
     };
   }
 }

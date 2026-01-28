@@ -27,7 +27,7 @@ export interface ICourseMongoSchema {
   name: string;
   description: string;
   slug: any; // TODO: Define explicit type
-  creator: string;
+  creator?: string;
   created: Date;
   isPrivate: boolean;
   whitelist: ObjectId[];

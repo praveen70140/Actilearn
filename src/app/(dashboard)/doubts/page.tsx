@@ -14,20 +14,18 @@ import { z } from 'zod';
 import { courseSchema } from '@/lib/zod/course';
 import { generateCourseFromDoubt } from '@/actions/generate-course';
 import CourseViewer from '@/app/(course)/course/[id]/CourseViewer';
+import { redirect } from 'next/navigation';
+import { ICourseMongoSchema } from '@/db/models/Course';
 
 export default function DoubtsPage() {
   const [doubt, setDoubt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [course, setCourse] = useState<z.infer<typeof courseSchema> | null>(
-    null,
-  );
-  const [isAttempting, setIsAttempting] = useState(false);
+  const [course, setCourse] = useState<ICourseMongoSchema | null>(null);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = async () => {
     if (!doubt) return;
     setIsLoading(true);
     setCourse(null);
-    setIsAttempting(false);
 
     try {
       const result = await generateCourseFromDoubt(doubt);
@@ -44,29 +42,12 @@ export default function DoubtsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [doubt]);
+  };
 
   const handleReset = () => {
     setDoubt('');
     setCourse(null);
-    setIsAttempting(false);
   };
-
-  if (isAttempting && course) {
-    return (
-      <div className="bg-background fixed inset-0 z-50">
-        <Button
-          isIconOnly
-          variant="light"
-          className="absolute top-4 right-4 z-[60] text-white/50 hover:text-white"
-          onClick={() => setIsAttempting(false)}
-        >
-          X
-        </Button>
-        <CourseViewer courseData={course} />
-      </div>
-    );
-  }
 
   return (
     <div className="bg-background relative flex min-h-screen items-center justify-center p-4">
@@ -141,7 +122,9 @@ export default function DoubtsPage() {
                 color="success"
                 variant="shadow"
                 size="lg"
-                onClick={() => setIsAttempting(true)}
+                onPress={() => {
+                  course._id && redirect(course.slug.toString());
+                }}
               >
                 Attempt
               </Button>

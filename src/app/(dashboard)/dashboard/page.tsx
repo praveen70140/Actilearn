@@ -28,13 +28,6 @@ import {
 import { IconHelp, IconTrophy, IconFlame } from '@tabler/icons-react';
 
 // Define the structure of a Course object that we expect from the API.
-interface Course {
-  _id: string;
-  slug: string;
-  description: string;
-  name: string;
-  tags: string[];
-}
 
 // Define the structure of a Course Category object that we expect from the API.
 interface CourseCategory {
@@ -48,10 +41,11 @@ interface CourseCategory {
 // Define the structure for the categorized courses to be displayed.
 interface CategorizedCourses {
   category: string;
-  courses: Course[];
+  courses: ICourseMongoSchema[];
 }
 
 import { useSearchParams } from 'next/navigation';
+import { ICourseMongoSchema } from '@/db/models/Course';
 
 export default function DashboardPage() {
   // useSession hook to get session data and authentication status.
@@ -65,7 +59,8 @@ export default function DashboardPage() {
   // State to control the visibility of the error modal.
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   // State to store the currently selected course.
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedCourse, setSelectedCourse] =
+    useState<ICourseMongoSchema | null>(null);
   // State to store the categorized courses.
   const [categorizedCourses, setCategorizedCourses] = useState<
     CategorizedCourses[]
@@ -85,7 +80,7 @@ export default function DashboardPage() {
           throw new Error('Failed to fetch data');
         }
 
-        const courses: Course[] = await coursesResponse.json();
+        const courses: ICourseMongoSchema[] = await coursesResponse.json();
         const categories: CourseCategory[] = await categoriesResponse.json();
 
         // Group courses by category.
@@ -100,10 +95,26 @@ export default function DashboardPage() {
           };
         });
 
+        const privateCourses = {
+          category: 'Created for you',
+          courses: courses.filter((course) => {
+            if (
+              course.isPrivate &&
+              course.whitelist
+                .map((e) => e.toString())
+                .includes(session?.user.id ?? '')
+            )
+              return course;
+          }),
+        };
+        console.log('private: ', courses);
+        console.log('you: ', session);
+
         // Filter out categories with no courses.
-        setCategorizedCourses(
-          groupedCourses.filter((group) => group.courses.length > 0),
-        );
+        setCategorizedCourses([
+          privateCourses,
+          ...groupedCourses.filter((group) => group.courses.length > 0),
+        ]);
       } catch (error) {
         // Log any errors that occur during the fetch operation.
         console.error('Error fetching data:', error);
@@ -111,7 +122,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, []); // The empty dependency array ensures this effect runs only once on mount.
+  }, [session]); // The empty dependency array ensures this effect runs only once on mount.
 
   useEffect(() => {
     if (searchParams.get('error') === 'course_not_found') {
@@ -120,7 +131,7 @@ export default function DashboardPage() {
   }, [searchParams]);
 
   // Function to handle opening the course confirmation modal.
-  const handleViewCourse = (course: Course) => {
+  const handleViewCourse = (course: ICourseMongoSchema) => {
     setSelectedCourse(course);
     setIsModalOpen(true);
   };
@@ -218,6 +229,7 @@ export default function DashboardPage() {
         <h2 className="text-secondary mb-6 text-4xl font-bold">
           Discover Courses
         </h2>
+
         {/* Section to display the list of courses grouped by category */}
         <div className="space-y-12">
           {categorizedCourses.map((categoryGroup) => (
@@ -231,7 +243,7 @@ export default function DashboardPage() {
               >
                 {/* Map over the courses in the category and render a card for each course */}
                 {categoryGroup.courses.map((course) => (
-                  <div key={course._id} className="w-80 shrink-0">
+                  <div key={course._id.toString()} className="w-80 shrink-0">
                     <Card className="bg-background outline-content2 hover:bg-content1 outline-1 hover:outline-0">
                       <CardHeader></CardHeader>
                       <CardBody>
