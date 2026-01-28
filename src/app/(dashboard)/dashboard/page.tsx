@@ -99,10 +99,31 @@ export default function DashboardPage() {
           };
         });
 
-        // Filter out categories with no courses.
-        setCategorizedCourses(
-          groupedCourses.filter((group) => group.courses.length > 0),
+        // Find courses that don't belong to any category (including those with empty tags)
+        const allCategorizedCourses = new Set();
+        groupedCourses.forEach((group) => {
+          group.courses.forEach((course) => {
+            allCategorizedCourses.add(course._id);
+          });
+        });
+
+        const uncategorizedCourses = courses.filter(
+          (course) => !allCategorizedCourses.has(course._id),
         );
+
+        // Create "Other Courses" section if there are uncategorized courses
+        const finalGroupedCourses = groupedCourses.filter(
+          (group) => group.courses.length > 0,
+        );
+
+        if (uncategorizedCourses.length > 0) {
+          finalGroupedCourses.push({
+            category: 'Other Courses',
+            courses: uncategorizedCourses,
+          });
+        }
+
+        setCategorizedCourses(finalGroupedCourses);
       } catch (error) {
         // Log any errors that occur during the fetch operation.
         console.error('Error fetching data:', error);

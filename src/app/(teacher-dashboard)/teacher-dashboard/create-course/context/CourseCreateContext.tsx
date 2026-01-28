@@ -8,19 +8,28 @@ import {
   Dispatch,
   SetStateAction,
 } from 'react';
-import { CourseType, ChapterType, LessonType } from '../components/CreateCourseViewer';
+import {
+  CourseType,
+  ChapterType,
+  LessonType,
+} from '../components/CreateCourseViewer';
+
+// Create a type for course data in the UI that excludes auto-generated fields
+type UICourseType = Omit<CourseType, 'slug' | 'created'> & {
+  _id?: string; // Keep _id as optional
+};
 
 // Define the shape of the context
 interface CourseCreateContextType {
-  courseData: CourseType;
-  setCourseData: Dispatch<SetStateAction<CourseType>>;
+  courseData: UICourseType;
+  setCourseData: Dispatch<SetStateAction<UICourseType>>;
   currentChapterIndex: number;
   setCurrentChapterIndex: Dispatch<SetStateAction<number>>;
   currentLessonIndex: number;
   setCurrentLessonIndex: Dispatch<SetStateAction<number>>;
   currentQuestionIndex: number;
   setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-  
+
   // Functions to manipulate course data
   addChapter: (chapter: ChapterType) => void;
   addLesson: (chapterIndex: number, lesson: LessonType) => void;
@@ -43,13 +52,11 @@ export const useCourseCreateContext = () => {
 
 // Provider component
 export const CourseCreateProvider = ({ children }: { children: ReactNode }) => {
-  const [courseData, setCourseData] = useState<CourseType>({
+  const [courseData, setCourseData] = useState<UICourseType>({
     name: 'New Course',
     description: '',
     chapters: [],
-    slug: '',
     tags: [],
-    created: new Date(),
     _id: '',
   });
 
