@@ -31,22 +31,8 @@ import {
   IconCheck,
 } from '@tabler/icons-react';
 import { useCourseCreateContext } from '../context/CourseCreateContext';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface ErrorDetail {
-  path: string;
-  message: string;
-  code: string;
-  received: string;
-}
-
-interface ApiError {
-  error: string;
-  message: string;
-  code: string;
-  details?: ErrorDetail[];
-}
 
 export function CreateCourseHeader() {
   const {
@@ -60,21 +46,33 @@ export function CreateCourseHeader() {
     setCurrentLessonIndex,
   } = useCourseCreateContext();
 
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const titleInputRef = useRef<HTMLInputElement>(null);
-  const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
-
-  // New state for course submission
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
-  const [errorData, setErrorData] = useState<ApiError | null>(null);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [successData, setSuccessData] = useState<{
-    courseId: string;
-    courseName: string;
-  } | null>(null);
-
   const router = useRouter();
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // --- UI State ---
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [errorData, setErrorData] = useState<any | null>(null);
+  const [successData, setSuccessData] = useState<any | null>(null);
+
+  // --- Bug Fix 9: Local State to prevent cursor jumping/lag ---
+  const [localChapterName, setLocalChapterName] = useState('');
+  const [localLessonName, setLocalLessonName] = useState('');
+
+  const currentChapter = courseData.chapters[currentChapterIndex];
+  const currentLesson = currentChapter?.lessons[currentLessonIndex];
+
+  // Sync local state when the active index changes
+  useEffect(() => {
+    setLocalChapterName(currentChapter?.name || '');
+  }, [currentChapterIndex, currentChapter?.name]);
+
+  useEffect(() => {
+    setLocalLessonName(currentLesson?.name || '');
+  }, [currentLessonIndex, currentLesson?.name]);
 
   useEffect(() => {
     if (isEditingTitle && titleInputRef.current) {
@@ -82,47 +80,138 @@ export function CreateCourseHeader() {
     }
   }, [isEditingTitle]);
 
-  // Course submission handler
-  const handleSubmitCourse = async () => {
-    setIsSubmitting(true);
-    setErrorData(null);
+  // --- Handlers ---
 
+  // Bug Fix 6: Auto-switch to newly created items
+  const handleAddChapter = () => {
+    addChapter({ name: 'New Chapter', lessons: [] });
+    setCurrentChapterIndex(courseData.chapters.length);
+    setCurrentLessonIndex(0);
+  };
+
+  const handleAddLesson = () => {
+    if (!currentChapter) return;
+    addLesson(currentChapterIndex, {
+      name: 'New Lesson',
+      theory: '',
+      questions: [],
+    });
+    setCurrentLessonIndex(currentChapter.lessons.length);
+  };
+
+  const updateChapterName = (val: string) => {
+    setLocalChapterName(val);
+    setCourseData((prev) => {
+      // 1. Copy all chapters
+      const updatedChapters = [...prev.chapters];
+
+      // 2. Copy the specific chapter we are editing and update the name
+      if (updatedChapters[currentChapterIndex]) {
+        updatedChapters[currentChapterIndex] = {
+          ...updatedChapters[currentChapterIndex],
+          name: val,
+        };
+      }
+
+      return { ...prev, chapters: updatedChapters };
+    });
+  };
+
+  const updateLessonName = (val: string) => {
+    setLocalLessonName(val);
+    setCourseData((prev) => {
+      // 1. Copy all chapters
+      const updatedChapters = [...prev.chapters];
+
+      // 2. Copy the specific chapter we are editing
+      const targetChapter = { ...updatedChapters[currentChapterIndex] };
+
+      // 3. Copy the lessons array within that chapter
+      const updatedLessons = [...targetChapter.lessons];
+
+      // 4. Copy the specific lesson and update the name
+      updatedLessons[currentLessonIndex] = {
+        ...updatedLessons[currentLessonIndex],
+        name: val,
+      };
+
+      // 5. Put it all back together
+      targetChapter.lessons = updatedLessons;
+      updatedChapters[currentChapterIndex] = targetChapter;
+
+      return { ...prev, chapters: updatedChapters };
+    });
+  };
+
+  const handleSubmitCourse = async () => {
+    // Basic validation before submission
+    if (!courseData.name || courseData.name.trim().length < 10) {
+      setErrorData({
+        error: 'Validation Error',
+        message: 'Course name must be at least 10 characters long',
+        code: 'VALIDATION_ERROR',
+      });
+      setIsErrorModalOpen(true);
+      return;
+    }
+
+    if (!courseData.description || courseData.description.trim().length === 0) {
+      setErrorData({
+        error: 'Validation Error',
+        message:
+          'Course description is required. Please click the info icon to add a description.',
+        code: 'VALIDATION_ERROR',
+      });
+      setIsErrorModalOpen(true);
+      return;
+    }
+
+    if (courseData.chapters.length === 0) {
+      setErrorData({
+        error: 'Validation Error',
+        message:
+          'Course must have at least one chapter. Please add a chapter before submitting.',
+        code: 'VALIDATION_ERROR',
+      });
+      setIsErrorModalOpen(true);
+      return;
+    }
+
+    if (courseData.chapters.some((chapter) => chapter.lessons.length === 0)) {
+      setErrorData({
+        error: 'Validation Error',
+        message:
+          'Each chapter must have at least one lesson. Please add lessons to all chapters.',
+        code: 'VALIDATION_ERROR',
+      });
+      setIsErrorModalOpen(true);
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const response = await fetch('/api/courses', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(courseData),
       });
-
-      const responseData = await response.json();
-
+      const data = await response.json();
       if (!response.ok) {
-        // Handle error response
-        setErrorData(responseData as ApiError);
+        setErrorData(data);
         setIsErrorModalOpen(true);
-        return;
+      } else {
+        setSuccessData({
+          courseId: data.courseId,
+          courseName: data.courseName,
+        });
+        setIsSuccessModalOpen(true);
+        setTimeout(() => router.push('/teacher-dashboard'), 2000);
       }
-
-      // Success case
-      console.log('Course created successfully:', responseData);
-      setSuccessData({
-        courseId: responseData.courseId,
-        courseName: responseData.courseName,
-      });
-      setIsSuccessModalOpen(true);
-
-      // Redirect to teacher dashboard after a short delay
-      setTimeout(() => {
-        router.push('/teacher-dashboard');
-      }, 2000);
-    } catch (error) {
-      console.error('Network error during course submission:', error);
+    } catch (err) {
       setErrorData({
         error: 'Network Error',
         message:
-          'Failed to connect to the server. Please check your internet connection and try again.',
+          'Failed to connect to server. Please check your internet connection and try again.',
         code: 'NETWORK_ERROR',
       });
       setIsErrorModalOpen(true);
@@ -132,48 +221,11 @@ export function CreateCourseHeader() {
   };
 
   const formatErrorPath = (path: string) => {
-    // Convert paths like "chapters.0.lessons.1.name" to "Chapter 1 → Lesson 2 → Name"
-    const parts = path.split('.');
-    let formatted = '';
-
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i];
-      if (part === 'chapters') {
-        formatted += 'Chapter ';
-      } else if (part === 'lessons') {
-        formatted += ' → Lesson ';
-      } else if (part === 'questions') {
-        formatted += ' → Question ';
-      } else if (!isNaN(Number(part))) {
-        formatted += Number(part) + 1;
-      } else {
-        formatted += ` → ${part.charAt(0).toUpperCase() + part.slice(1)}`;
-      }
-    }
-
-    return formatted;
+    return path
+      .split('.')
+      .map((p) => (isNaN(Number(p)) ? p : Number(p) + 1))
+      .join(' → ');
   };
-
-  // Helper to update current chapter name
-  const updateChapterName = (name: string) => {
-    const newChapters = [...courseData.chapters];
-    if (newChapters[currentChapterIndex]) {
-      newChapters[currentChapterIndex].name = name;
-      setCourseData({ ...courseData, chapters: newChapters });
-    }
-  };
-
-  // Helper to update current lesson name
-  const updateLessonName = (name: string) => {
-    const newChapters = [...courseData.chapters];
-    if (newChapters[currentChapterIndex]?.lessons[currentLessonIndex]) {
-      newChapters[currentChapterIndex].lessons[currentLessonIndex].name = name;
-      setCourseData({ ...courseData, chapters: newChapters });
-    }
-  };
-
-  const currentChapter = courseData.chapters[currentChapterIndex];
-  const currentLesson = currentChapter?.lessons[currentLessonIndex];
 
   return (
     <>
@@ -181,45 +233,55 @@ export function CreateCourseHeader() {
         maxWidth="full"
         isBordered
         className="bg-background/70 border-divider h-20 border-b backdrop-blur-md"
+        // Bug Fix 10: Ensure dropdowns aren't clipped
+        classNames={{ wrapper: 'overflow-visible' }}
       >
-        <NavbarContent justify="start">
-          {/* Placeholder for potential branding or other start-aligned elements */}
+        <NavbarContent justify="start" className="max-w-fit">
+          {/* Branding/Back Button could go here */}
         </NavbarContent>
 
-        {/* 2. CHAPTER & LESSON MANAGEMENT - NOW CENTRALIZED */}
-        <NavbarContent justify="center" className="gap-6">
+        {/* CHAPTER & LESSON MANAGEMENT */}
+        <NavbarContent justify="center" className="gap-4">
           {/* CHAPTER SECTION */}
           <div className="flex items-end gap-1">
             <Input
               label="Chapter"
               labelPlacement="outside"
               placeholder="Chapter Name"
-              value={currentChapter?.name || ''}
+              value={localChapterName}
               onValueChange={updateChapterName}
-              startContent={<IconFolder size={18} className="text-primary" />}
-              className="w-48 lg:w-60"
+              startContent={
+                <IconFolder size={18} className="text-primary flex-shrink-0" />
+              }
+              className="w-48 lg:w-64"
               endContent={
                 <Dropdown placement="bottom-end">
                   <DropdownTrigger>
+                    {/* Bug Fix 1 & 5: Button stops focus propagation to input */}
                     <Button
                       isIconOnly
                       size="sm"
                       variant="light"
-                      className="text-default-400"
+                      className="text-default-400 min-w-8"
                     >
                       <IconChevronDown size={16} />
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu
                     aria-label="Switch Chapter"
+                    disallowEmptySelection
+                    selectionMode="single"
+                    // Bug Fix 2: Visual feedback for current selection
+                    selectedKeys={new Set([currentChapterIndex.toString()])}
                     onAction={(key) => setCurrentChapterIndex(Number(key))}
                   >
                     {courseData.chapters.map((ch, idx) => (
+                      // Bug Fix 3: Stable string keys
                       <DropdownItem
-                        key={idx}
-                        description={`Contains ${ch.lessons.length} lessons`}
+                        key={idx.toString()}
+                        description={`${ch.lessons.length} lessons`}
                       >
-                        {ch.name}
+                        {ch.name || 'Untitled Chapter'}
                       </DropdownItem>
                     ))}
                   </DropdownMenu>
@@ -232,30 +294,33 @@ export function CreateCourseHeader() {
                 radius="md"
                 color="primary"
                 variant="flat"
-                onPress={() =>
-                  addChapter({ name: 'Untitled Chapter', lessons: [] })
-                }
+                onPress={handleAddChapter}
               >
                 <IconPlus size={20} />
               </Button>
             </Tooltip>
           </div>
 
-          <Divider orientation="vertical" className="mb-1 h-10 self-end" />
+          <Divider orientation="vertical" className="mx-2 mb-1 h-10 self-end" />
 
           {/* LESSON SECTION */}
           <div className="flex items-end gap-1">
             <Input
               label="Lesson"
               labelPlacement="outside"
-              placeholder="Lesson Name"
+              placeholder={
+                currentChapter ? 'Lesson Name' : 'Add a chapter first'
+              }
               isDisabled={!currentChapter}
-              value={currentLesson?.name || ''}
+              value={localLessonName}
               onValueChange={updateLessonName}
               startContent={
-                <IconFileText size={18} className="text-secondary" />
+                <IconFileText
+                  size={18}
+                  className="text-secondary flex-shrink-0"
+                />
               }
-              className="w-48 lg:w-60"
+              className="w-48 lg:w-64"
               endContent={
                 <Dropdown placement="bottom-end">
                   <DropdownTrigger>
@@ -263,18 +328,35 @@ export function CreateCourseHeader() {
                       isIconOnly
                       size="sm"
                       variant="light"
-                      className="text-default-400"
+                      className="text-default-400 min-w-8"
+                      isDisabled={!currentChapter}
                     >
                       <IconChevronDown size={16} />
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu
                     aria-label="Switch Lesson"
+                    disallowEmptySelection
+                    selectionMode="single"
+                    selectedKeys={new Set([currentLessonIndex.toString()])}
                     onAction={(key) => setCurrentLessonIndex(Number(key))}
                   >
-                    {(currentChapter?.lessons || []).map((ls, idx) => (
-                      <DropdownItem key={idx}>{ls.name}</DropdownItem>
-                    ))}
+                    {/* Bug Fix 8: Empty state handling */}
+                    {currentChapter?.lessons.length ? (
+                      currentChapter.lessons.map((ls, idx) => (
+                        <DropdownItem key={idx.toString()}>
+                          {ls.name || 'Untitled Lesson'}
+                        </DropdownItem>
+                      ))
+                    ) : (
+                      <DropdownItem
+                        key="none"
+                        isReadOnly
+                        className="italic opacity-50"
+                      >
+                        No lessons added
+                      </DropdownItem>
+                    )}
                   </DropdownMenu>
                 </Dropdown>
               }
@@ -286,13 +368,7 @@ export function CreateCourseHeader() {
                 color="secondary"
                 variant="flat"
                 isDisabled={!currentChapter}
-                onPress={() =>
-                  addLesson(currentChapterIndex, {
-                    name: 'Untitled Lesson',
-                    theory: '',
-                    questions: [],
-                  })
-                }
+                onPress={handleAddLesson}
               >
                 <IconPlus size={20} />
               </Button>
@@ -300,70 +376,68 @@ export function CreateCourseHeader() {
           </div>
         </NavbarContent>
 
-        {/* 3. ACTIONS & COURSE TITLE (moved from start) */}
-        <NavbarContent justify="end" className="gap-6">
-          {isEditingTitle ? (
-            <Input
-              ref={titleInputRef}
-              variant="flat"
-              label="Course Title"
-              labelPlacement="outside"
-              value={courseData.name}
-              onChange={(e) =>
-                setCourseData({ ...courseData, name: e.target.value })
-              }
-              onBlur={() => setIsEditingTitle(false)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') setIsEditingTitle(false);
-              }}
-              className="w-48 lg:w-64"
-            />
-          ) : (
-            <div
-              className="group flex h-[58px] w-48 cursor-pointer flex-col justify-center lg:w-64"
-              onClick={() => setIsEditingTitle(true)}
-            >
-              <label className="text-default-500 origin-top-left text-xs">
-                Course Title
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="truncate text-base font-medium">
-                  {courseData.name || 'Untitled Course'}
-                </span>
-                <IconEdit
-                  size={16}
-                  className="text-default-400 opacity-0 transition-opacity group-hover:opacity-100"
-                />
+        {/* ACTIONS & COURSE TITLE */}
+        <NavbarContent justify="end" className="gap-4">
+          {/* Bug Fix 4: Matching heights and alignment for Course Title */}
+          <div className="flex h-full flex-col justify-end pb-1">
+            {isEditingTitle ? (
+              <Input
+                ref={titleInputRef}
+                variant="flat"
+                label="Course Title"
+                labelPlacement="outside"
+                value={courseData.name}
+                onValueChange={(val) =>
+                  setCourseData({ ...courseData, name: val })
+                }
+                onBlur={() => setIsEditingTitle(false)}
+                onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
+                className="w-48 lg:w-64"
+              />
+            ) : (
+              <div
+                className="group flex w-48 cursor-pointer flex-col px-1 lg:w-64"
+                onClick={() => setIsEditingTitle(true)}
+              >
+                <label className="text-default-500 mb-1 text-xs">
+                  Course Title
+                </label>
+                <div className="flex h-10 items-center gap-2">
+                  <span className="truncate text-base font-medium">
+                    {courseData.name || 'Untitled Course'}
+                  </span>
+                  <IconEdit
+                    size={16}
+                    className="text-default-400 opacity-0 transition-opacity group-hover:opacity-100"
+                  />
+                </div>
               </div>
-            </div>
-          )}
-          <Tooltip content="Edit Metadata">
+            )}
+          </div>
+
+          <div className="mb-1 flex items-center gap-2 self-end">
+            <Tooltip content="Edit Metadata">
+              <Button
+                isIconOnly
+                variant="light"
+                onPress={() => setIsMetadataModalOpen(true)}
+              >
+                <IconInfoCircle size={22} />
+              </Button>
+            </Tooltip>
             <Button
-              isIconOnly
-              variant="light"
-              onPress={() => setIsMetadataModalOpen(true)}
-              className="ml-2"
+              color="primary"
+              variant="shadow"
+              className="px-6 font-bold"
+              startContent={
+                !isSubmitting && <IconDeviceFloppy size={20} stroke={2.5} />
+              }
+              onPress={handleSubmitCourse}
+              isLoading={isSubmitting}
             >
-              <IconInfoCircle size={20} />
+              Submit
             </Button>
-          </Tooltip>
-          <Button
-            color="primary"
-            variant="shadow"
-            className="font-bold"
-            startContent={
-              isSubmitting ? (
-                <Spinner size="sm" color="white" />
-              ) : (
-                <IconDeviceFloppy size={20} stroke={2.5} />
-              )
-            }
-            onPress={handleSubmitCourse}
-            isLoading={isSubmitting}
-            isDisabled={isSubmitting}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </Button>
+          </div>
         </NavbarContent>
       </Navbar>
 
@@ -384,6 +458,9 @@ export function CreateCourseHeader() {
                 setCourseData({ ...courseData, description: e.target.value })
               }
               className="mb-4"
+              minRows={3}
+              isRequired
+              description="A description is required for course creation"
             />
             <Input
               label="Tags (comma separated)"
@@ -399,10 +476,23 @@ export function CreateCourseHeader() {
                     .filter((tag) => tag.length > 0),
                 })
               }
+              description="Courses without tags will appear in 'Other Courses' section on the dashboard"
             />
           </ModalBody>
           <ModalFooter>
-            <Button onClick={() => setIsMetadataModalOpen(false)}>Close</Button>
+            <Button
+              color="danger"
+              variant="light"
+              onPress={() => setIsMetadataModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              onPress={() => setIsMetadataModalOpen(false)}
+            >
+              Save Metadata
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -438,7 +528,7 @@ export function CreateCourseHeader() {
                   <div>
                     <h5 className="mb-3 font-semibold">Detailed Issues:</h5>
                     <div className="space-y-3">
-                      {errorData.details.map((detail, index) => (
+                      {errorData.details.map((detail: any, index: number) => (
                         <div
                           key={index}
                           className="rounded-lg border border-gray-200 bg-gray-50 p-3"

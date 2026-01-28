@@ -54,7 +54,7 @@ export const useCourseCreateContext = () => {
 export const CourseCreateProvider = ({ children }: { children: ReactNode }) => {
   const [courseData, setCourseData] = useState<UICourseType>({
     name: 'New Course',
-    description: '',
+    description: 'Course description', // Default description to prevent validation error
     chapters: [],
     tags: [],
     _id: '',
@@ -65,16 +65,45 @@ export const CourseCreateProvider = ({ children }: { children: ReactNode }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const addChapter = (chapter: ChapterType) => {
-    setCourseData((prevCourse) => ({
-      ...prevCourse,
-      chapters: [...prevCourse.chapters, chapter],
-    }));
+    setCourseData((prevCourse) => {
+      // Create a fresh copy of the new chapter with unique ID and fresh lessons array
+      const newChapter = {
+        ...chapter,
+        _id: crypto.randomUUID(), // Ensure unique ID for each chapter
+        lessons: [...chapter.lessons], // Ensure fresh lessons array (not shared reference)
+      };
+
+      return {
+        ...prevCourse,
+        chapters: [...prevCourse.chapters, newChapter],
+      };
+    });
   };
 
   const addLesson = (chapterIndex: number, lesson: LessonType) => {
     setCourseData((prevCourse) => {
+      // 1. Copy all chapters
       const newChapters = [...prevCourse.chapters];
-      newChapters[chapterIndex].lessons.push(lesson);
+
+      // 2. Copy the specific chapter we are editing
+      const targetChapter = { ...newChapters[chapterIndex] };
+
+      // 3. Copy the lessons array within that chapter
+      const newLessons = [...targetChapter.lessons];
+
+      // 4. Create a fresh copy of the new lesson with unique ID
+      const newLesson = {
+        ...lesson,
+        _id: crypto.randomUUID(), // Ensure unique ID for each lesson
+      };
+
+      // 5. Add the new lesson to the copied array
+      newLessons.push(newLesson);
+
+      // 6. Put it all back together
+      targetChapter.lessons = newLessons;
+      newChapters[chapterIndex] = targetChapter;
+
       return { ...prevCourse, chapters: newChapters };
     });
   };
